@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -2638593037914755636L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"EmailMessage\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"subject\",\"type\":\"string\"},{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"body_type\",\"type\":{\"type\":\"enum\",\"name\":\"BodyType\",\"symbols\":[\"HTML\",\"PLAIN\",\"RTF\"]}},{\"name\":\"recipients\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"RecipientDetails\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}}},{\"name\":\"sender_details\",\"type\":{\"type\":\"record\",\"name\":\"SenderDetails\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}}]}");
+  private static final long serialVersionUID = 5065063519229218438L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"EmailMessage\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"attachments\",\"type\":[\"null\",{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"Attachment\",\"fields\":[{\"name\":\"data\",\"type\":\"bytes\"},{\"name\":\"file_name\",\"type\":\"string\"},{\"name\":\"mime_type\",\"type\":\"string\"},{\"name\":\"size\",\"type\":\"int\"}]}}]},{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"body_type\",\"type\":{\"type\":\"enum\",\"name\":\"BodyType\",\"symbols\":[\"HTML\",\"PLAIN\",\"RTF\"]}},{\"name\":\"folder\",\"type\":\"string\"},{\"name\":\"recipients\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"RecipientDetails\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}}},{\"name\":\"sender_details\",\"type\":{\"type\":\"record\",\"name\":\"SenderDetails\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}},{\"name\":\"subject\",\"type\":\"string\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -51,11 +51,13 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     return DECODER.decode(b);
   }
 
-  @Deprecated public java.lang.CharSequence subject;
+  @Deprecated public java.util.List<org.apache.nifi.processor.email.extraction.Attachment> attachments;
   @Deprecated public java.lang.CharSequence body;
   @Deprecated public org.apache.nifi.processor.email.extraction.BodyType body_type;
+  @Deprecated public java.lang.CharSequence folder;
   @Deprecated public java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails> recipients;
   @Deprecated public org.apache.nifi.processor.email.extraction.SenderDetails sender_details;
+  @Deprecated public java.lang.CharSequence subject;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -66,29 +68,35 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
 
   /**
    * All-args constructor.
-   * @param subject The new value for subject
+   * @param attachments The new value for attachments
    * @param body The new value for body
    * @param body_type The new value for body_type
+   * @param folder The new value for folder
    * @param recipients The new value for recipients
    * @param sender_details The new value for sender_details
+   * @param subject The new value for subject
    */
-  public EmailMessage(java.lang.CharSequence subject, java.lang.CharSequence body, org.apache.nifi.processor.email.extraction.BodyType body_type, java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails> recipients, org.apache.nifi.processor.email.extraction.SenderDetails sender_details) {
-    this.subject = subject;
+  public EmailMessage(java.util.List<org.apache.nifi.processor.email.extraction.Attachment> attachments, java.lang.CharSequence body, org.apache.nifi.processor.email.extraction.BodyType body_type, java.lang.CharSequence folder, java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails> recipients, org.apache.nifi.processor.email.extraction.SenderDetails sender_details, java.lang.CharSequence subject) {
+    this.attachments = attachments;
     this.body = body;
     this.body_type = body_type;
+    this.folder = folder;
     this.recipients = recipients;
     this.sender_details = sender_details;
+    this.subject = subject;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   // Used by DatumWriter.  Applications should not call.
   public java.lang.Object get(int field$) {
     switch (field$) {
-    case 0: return subject;
+    case 0: return attachments;
     case 1: return body;
     case 2: return body_type;
-    case 3: return recipients;
-    case 4: return sender_details;
+    case 3: return folder;
+    case 4: return recipients;
+    case 5: return sender_details;
+    case 6: return subject;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -97,29 +105,31 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: subject = (java.lang.CharSequence)value$; break;
+    case 0: attachments = (java.util.List<org.apache.nifi.processor.email.extraction.Attachment>)value$; break;
     case 1: body = (java.lang.CharSequence)value$; break;
     case 2: body_type = (org.apache.nifi.processor.email.extraction.BodyType)value$; break;
-    case 3: recipients = (java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails>)value$; break;
-    case 4: sender_details = (org.apache.nifi.processor.email.extraction.SenderDetails)value$; break;
+    case 3: folder = (java.lang.CharSequence)value$; break;
+    case 4: recipients = (java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails>)value$; break;
+    case 5: sender_details = (org.apache.nifi.processor.email.extraction.SenderDetails)value$; break;
+    case 6: subject = (java.lang.CharSequence)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
 
   /**
-   * Gets the value of the 'subject' field.
-   * @return The value of the 'subject' field.
+   * Gets the value of the 'attachments' field.
+   * @return The value of the 'attachments' field.
    */
-  public java.lang.CharSequence getSubject() {
-    return subject;
+  public java.util.List<org.apache.nifi.processor.email.extraction.Attachment> getAttachments() {
+    return attachments;
   }
 
   /**
-   * Sets the value of the 'subject' field.
+   * Sets the value of the 'attachments' field.
    * @param value the value to set.
    */
-  public void setSubject(java.lang.CharSequence value) {
-    this.subject = value;
+  public void setAttachments(java.util.List<org.apache.nifi.processor.email.extraction.Attachment> value) {
+    this.attachments = value;
   }
 
   /**
@@ -155,6 +165,22 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
   }
 
   /**
+   * Gets the value of the 'folder' field.
+   * @return The value of the 'folder' field.
+   */
+  public java.lang.CharSequence getFolder() {
+    return folder;
+  }
+
+  /**
+   * Sets the value of the 'folder' field.
+   * @param value the value to set.
+   */
+  public void setFolder(java.lang.CharSequence value) {
+    this.folder = value;
+  }
+
+  /**
    * Gets the value of the 'recipients' field.
    * @return The value of the 'recipients' field.
    */
@@ -184,6 +210,22 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
    */
   public void setSenderDetails(org.apache.nifi.processor.email.extraction.SenderDetails value) {
     this.sender_details = value;
+  }
+
+  /**
+   * Gets the value of the 'subject' field.
+   * @return The value of the 'subject' field.
+   */
+  public java.lang.CharSequence getSubject() {
+    return subject;
+  }
+
+  /**
+   * Sets the value of the 'subject' field.
+   * @param value the value to set.
+   */
+  public void setSubject(java.lang.CharSequence value) {
+    this.subject = value;
   }
 
   /**
@@ -218,12 +260,14 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<EmailMessage>
     implements org.apache.avro.data.RecordBuilder<EmailMessage> {
 
-    private java.lang.CharSequence subject;
+    private java.util.List<org.apache.nifi.processor.email.extraction.Attachment> attachments;
     private java.lang.CharSequence body;
     private org.apache.nifi.processor.email.extraction.BodyType body_type;
+    private java.lang.CharSequence folder;
     private java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails> recipients;
     private org.apache.nifi.processor.email.extraction.SenderDetails sender_details;
     private org.apache.nifi.processor.email.extraction.SenderDetails.Builder sender_detailsBuilder;
+    private java.lang.CharSequence subject;
 
     /** Creates a new Builder */
     private Builder() {
@@ -236,8 +280,8 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
      */
     private Builder(org.apache.nifi.processor.email.extraction.EmailMessage.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.subject)) {
-        this.subject = data().deepCopy(fields()[0].schema(), other.subject);
+      if (isValidValue(fields()[0], other.attachments)) {
+        this.attachments = data().deepCopy(fields()[0].schema(), other.attachments);
         fieldSetFlags()[0] = true;
       }
       if (isValidValue(fields()[1], other.body)) {
@@ -248,16 +292,24 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
         this.body_type = data().deepCopy(fields()[2].schema(), other.body_type);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.recipients)) {
-        this.recipients = data().deepCopy(fields()[3].schema(), other.recipients);
+      if (isValidValue(fields()[3], other.folder)) {
+        this.folder = data().deepCopy(fields()[3].schema(), other.folder);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.sender_details)) {
-        this.sender_details = data().deepCopy(fields()[4].schema(), other.sender_details);
+      if (isValidValue(fields()[4], other.recipients)) {
+        this.recipients = data().deepCopy(fields()[4].schema(), other.recipients);
         fieldSetFlags()[4] = true;
+      }
+      if (isValidValue(fields()[5], other.sender_details)) {
+        this.sender_details = data().deepCopy(fields()[5].schema(), other.sender_details);
+        fieldSetFlags()[5] = true;
       }
       if (other.hasSenderDetailsBuilder()) {
         this.sender_detailsBuilder = org.apache.nifi.processor.email.extraction.SenderDetails.newBuilder(other.getSenderDetailsBuilder());
+      }
+      if (isValidValue(fields()[6], other.subject)) {
+        this.subject = data().deepCopy(fields()[6].schema(), other.subject);
+        fieldSetFlags()[6] = true;
       }
     }
 
@@ -267,8 +319,8 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
      */
     private Builder(org.apache.nifi.processor.email.extraction.EmailMessage other) {
             super(SCHEMA$);
-      if (isValidValue(fields()[0], other.subject)) {
-        this.subject = data().deepCopy(fields()[0].schema(), other.subject);
+      if (isValidValue(fields()[0], other.attachments)) {
+        this.attachments = data().deepCopy(fields()[0].schema(), other.attachments);
         fieldSetFlags()[0] = true;
       }
       if (isValidValue(fields()[1], other.body)) {
@@ -279,52 +331,60 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
         this.body_type = data().deepCopy(fields()[2].schema(), other.body_type);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.recipients)) {
-        this.recipients = data().deepCopy(fields()[3].schema(), other.recipients);
+      if (isValidValue(fields()[3], other.folder)) {
+        this.folder = data().deepCopy(fields()[3].schema(), other.folder);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.sender_details)) {
-        this.sender_details = data().deepCopy(fields()[4].schema(), other.sender_details);
+      if (isValidValue(fields()[4], other.recipients)) {
+        this.recipients = data().deepCopy(fields()[4].schema(), other.recipients);
         fieldSetFlags()[4] = true;
       }
+      if (isValidValue(fields()[5], other.sender_details)) {
+        this.sender_details = data().deepCopy(fields()[5].schema(), other.sender_details);
+        fieldSetFlags()[5] = true;
+      }
       this.sender_detailsBuilder = null;
+      if (isValidValue(fields()[6], other.subject)) {
+        this.subject = data().deepCopy(fields()[6].schema(), other.subject);
+        fieldSetFlags()[6] = true;
+      }
     }
 
     /**
-      * Gets the value of the 'subject' field.
+      * Gets the value of the 'attachments' field.
       * @return The value.
       */
-    public java.lang.CharSequence getSubject() {
-      return subject;
+    public java.util.List<org.apache.nifi.processor.email.extraction.Attachment> getAttachments() {
+      return attachments;
     }
 
     /**
-      * Sets the value of the 'subject' field.
-      * @param value The value of 'subject'.
+      * Sets the value of the 'attachments' field.
+      * @param value The value of 'attachments'.
       * @return This builder.
       */
-    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setSubject(java.lang.CharSequence value) {
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setAttachments(java.util.List<org.apache.nifi.processor.email.extraction.Attachment> value) {
       validate(fields()[0], value);
-      this.subject = value;
+      this.attachments = value;
       fieldSetFlags()[0] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'subject' field has been set.
-      * @return True if the 'subject' field has been set, false otherwise.
+      * Checks whether the 'attachments' field has been set.
+      * @return True if the 'attachments' field has been set, false otherwise.
       */
-    public boolean hasSubject() {
+    public boolean hasAttachments() {
       return fieldSetFlags()[0];
     }
 
 
     /**
-      * Clears the value of the 'subject' field.
+      * Clears the value of the 'attachments' field.
       * @return This builder.
       */
-    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearSubject() {
-      subject = null;
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearAttachments() {
+      attachments = null;
       fieldSetFlags()[0] = false;
       return this;
     }
@@ -408,6 +468,45 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     }
 
     /**
+      * Gets the value of the 'folder' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getFolder() {
+      return folder;
+    }
+
+    /**
+      * Sets the value of the 'folder' field.
+      * @param value The value of 'folder'.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setFolder(java.lang.CharSequence value) {
+      validate(fields()[3], value);
+      this.folder = value;
+      fieldSetFlags()[3] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'folder' field has been set.
+      * @return True if the 'folder' field has been set, false otherwise.
+      */
+    public boolean hasFolder() {
+      return fieldSetFlags()[3];
+    }
+
+
+    /**
+      * Clears the value of the 'folder' field.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearFolder() {
+      folder = null;
+      fieldSetFlags()[3] = false;
+      return this;
+    }
+
+    /**
       * Gets the value of the 'recipients' field.
       * @return The value.
       */
@@ -421,9 +520,9 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setRecipients(java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails> value) {
-      validate(fields()[3], value);
+      validate(fields()[4], value);
       this.recipients = value;
-      fieldSetFlags()[3] = true;
+      fieldSetFlags()[4] = true;
       return this;
     }
 
@@ -432,7 +531,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'recipients' field has been set, false otherwise.
       */
     public boolean hasRecipients() {
-      return fieldSetFlags()[3];
+      return fieldSetFlags()[4];
     }
 
 
@@ -442,7 +541,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       */
     public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearRecipients() {
       recipients = null;
-      fieldSetFlags()[3] = false;
+      fieldSetFlags()[4] = false;
       return this;
     }
 
@@ -460,10 +559,10 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setSenderDetails(org.apache.nifi.processor.email.extraction.SenderDetails value) {
-      validate(fields()[4], value);
+      validate(fields()[5], value);
       this.sender_detailsBuilder = null;
       this.sender_details = value;
-      fieldSetFlags()[4] = true;
+      fieldSetFlags()[5] = true;
       return this;
     }
 
@@ -472,7 +571,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'sender_details' field has been set, false otherwise.
       */
     public boolean hasSenderDetails() {
-      return fieldSetFlags()[4];
+      return fieldSetFlags()[5];
     }
 
     /**
@@ -516,7 +615,46 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearSenderDetails() {
       sender_details = null;
       sender_detailsBuilder = null;
-      fieldSetFlags()[4] = false;
+      fieldSetFlags()[5] = false;
+      return this;
+    }
+
+    /**
+      * Gets the value of the 'subject' field.
+      * @return The value.
+      */
+    public java.lang.CharSequence getSubject() {
+      return subject;
+    }
+
+    /**
+      * Sets the value of the 'subject' field.
+      * @param value The value of 'subject'.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setSubject(java.lang.CharSequence value) {
+      validate(fields()[6], value);
+      this.subject = value;
+      fieldSetFlags()[6] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'subject' field has been set.
+      * @return True if the 'subject' field has been set, false otherwise.
+      */
+    public boolean hasSubject() {
+      return fieldSetFlags()[6];
+    }
+
+
+    /**
+      * Clears the value of the 'subject' field.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearSubject() {
+      subject = null;
+      fieldSetFlags()[6] = false;
       return this;
     }
 
@@ -525,15 +663,17 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     public EmailMessage build() {
       try {
         EmailMessage record = new EmailMessage();
-        record.subject = fieldSetFlags()[0] ? this.subject : (java.lang.CharSequence) defaultValue(fields()[0]);
+        record.attachments = fieldSetFlags()[0] ? this.attachments : (java.util.List<org.apache.nifi.processor.email.extraction.Attachment>) defaultValue(fields()[0]);
         record.body = fieldSetFlags()[1] ? this.body : (java.lang.CharSequence) defaultValue(fields()[1]);
         record.body_type = fieldSetFlags()[2] ? this.body_type : (org.apache.nifi.processor.email.extraction.BodyType) defaultValue(fields()[2]);
-        record.recipients = fieldSetFlags()[3] ? this.recipients : (java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails>) defaultValue(fields()[3]);
+        record.folder = fieldSetFlags()[3] ? this.folder : (java.lang.CharSequence) defaultValue(fields()[3]);
+        record.recipients = fieldSetFlags()[4] ? this.recipients : (java.util.List<org.apache.nifi.processor.email.extraction.RecipientDetails>) defaultValue(fields()[4]);
         if (sender_detailsBuilder != null) {
           record.sender_details = this.sender_detailsBuilder.build();
         } else {
-          record.sender_details = fieldSetFlags()[4] ? this.sender_details : (org.apache.nifi.processor.email.extraction.SenderDetails) defaultValue(fields()[4]);
+          record.sender_details = fieldSetFlags()[5] ? this.sender_details : (org.apache.nifi.processor.email.extraction.SenderDetails) defaultValue(fields()[5]);
         }
+        record.subject = fieldSetFlags()[6] ? this.subject : (java.lang.CharSequence) defaultValue(fields()[6]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

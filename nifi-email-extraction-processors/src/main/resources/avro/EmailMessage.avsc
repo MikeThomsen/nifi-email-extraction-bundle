@@ -3,10 +3,34 @@
 	"type": "record",
 	"name": "EmailMessage",
 	"fields": [
-		{
-			"name": "subject",
-			"type": "string"
-		},
+	    {
+	        "name": "attachments",
+	        "type": [ "null", {
+	            "type": "array",
+	            "items": {
+                    "type": "record",
+                    "name": "Attachment",
+                    "fields": [
+                        {
+                            "name": "data",
+                            "type": "bytes"
+                        },
+                        {
+                            "name": "file_name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "mime_type",
+                            "type": "string"
+                        },
+                        {
+                            "name": "size",
+                            "type": "int"
+                        }
+                    ]
+	            }
+	        }]
+	    },
 		{
 			"name": "body",
 			"type": "string"
@@ -18,6 +42,10 @@
 				"type": "enum",
 				"symbols": [ "HTML", "PLAIN", "RTF" ]
 			}
+		},
+		{
+		    "name": "folder",
+		    "type": "string"
 		},
 		{
 		    "name": "recipients",
@@ -55,6 +83,10 @@
 		            }
 		        ]
 		    }
-		}
+		},
+		{
+            "name": "subject",
+            "type": "string"
+        }
 	]
 }
