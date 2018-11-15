@@ -1,0 +1,23 @@
+{
+	"namespace": "org.apache.nifi.processor.email.extraction",
+	"type": "record",
+	"name": "EmailMessage",
+	"fields": [
+		{
+			"name": "subject",
+			"type": "string"
+		},
+		{
+			"name": "body",
+			"type": "string"
+		},
+		{
+			"name": "body_type",
+			"type": {
+				"name": "BodyType",
+				"type": "enum",
+				"symbols": [ "HTML", "PLAIN", "RTF" ]
+			}
+		}
+	]
+}
