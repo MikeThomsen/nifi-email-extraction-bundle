@@ -18,6 +18,43 @@
 				"type": "enum",
 				"symbols": [ "HTML", "PLAIN", "RTF" ]
 			}
+		},
+		{
+		    "name": "recipients",
+		    "type": {
+		        "type": "array",
+                    "items": {
+                    "type": "record",
+                    "name": "RecipientDetails",
+                    "fields": [
+                        {
+                            "name": "name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "email_address",
+                            "type": "string"
+                        }
+                    ]
+                }
+            }
+		},
+		{
+		    "name": "sender_details",
+		    "type": {
+		        "type": "record",
+		        "name": "SenderDetails",
+		        "fields": [
+		            {
+		                "name": "name",
+		                "type": "string"
+		            },
+		            {
+		                "name": "email_address",
+		                "type": "string"
+		            }
+		        ]
+		    }
 		}
 	]
 }
