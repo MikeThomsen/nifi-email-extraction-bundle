@@ -30,8 +30,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
@@ -59,18 +61,9 @@ public class ExtractPSTFile extends AbstractProcessor {
     public static final AllowableValue TRUE = new AllowableValue("true", "True", "Attachments will be added to records.");
     public static final AllowableValue FALSE = new AllowableValue("false", "False", "Attachments will be sent to the \"attachments\" relationship");
 
-    public static final PropertyDescriptor ATTACH_ATTACHMENTS_TO_RECORD = new PropertyDescriptor.Builder()
-        .name("extract-pst-attach-attachments")
-        .displayName("Attach Attachments to Records")
-        .allowableValues(TRUE, FALSE)
-        .defaultValue(FALSE.getValue())
-        .expressionLanguageSupported(ExpressionLanguageScope.NONE)
-        .description("If true, attachments will be part of the record. If false, attachments will be sent to the \"attachments\" " +
-                "relationship. If this option is enabled, the Avro records can grow very large.")
-        .build();
 
     public static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = Collections.unmodifiableList(Arrays.asList(
-        ATTACH_ATTACHMENTS_TO_RECORD
+
     ));
 
     public static final Set<Relationship> RELATIONSHIPS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -97,7 +90,7 @@ public class ExtractPSTFile extends AbstractProcessor {
         File _temp = null;
         FlowFile output = session.create(input);
         List<FlowFile> attachments = new ArrayList<>();
-        boolean attach = context.getProperty(ATTACH_ATTACHMENTS_TO_RECORD).asBoolean();
+
         try {
             _temp = File.createTempFile(input.getAttribute("uuid"), null);
             FileOutputStream out = new FileOutputStream(_temp);
@@ -111,12 +104,16 @@ public class ExtractPSTFile extends AbstractProcessor {
             OutputStream ffOut = session.write(output);
 
             fileWriter.create(EmailMessage.SCHEMA$, ffOut);
-            processFolder(file.getRootFolder(), fileWriter, attachments, attach, output, session);
+            processFolder(file.getRootFolder(), fileWriter, attachments, output, session);
             fileWriter.close();
             ffOut.close();
 
             session.transfer(input, REL_ORIGINAL);
             session.transfer(output, REL_MESSAGES);
+
+            for (FlowFile ff : attachments) {
+                session.transfer(ff, REL_ATTACHMENTS);
+            }
 
         } catch (Exception ex) {
             getLogger().error("Error", ex);
@@ -133,12 +130,12 @@ public class ExtractPSTFile extends AbstractProcessor {
         }
     }
 
-    private void processFolder(PSTFolder folder, DataFileWriter writer, List<FlowFile> attachments, boolean attach, FlowFile parent, ProcessSession session) throws Exception
+    private void processFolder(PSTFolder folder, DataFileWriter writer, List<FlowFile> attachments, FlowFile parent, ProcessSession session) throws Exception
     {
         if (folder.hasSubfolders()) {
             List<PSTFolder> childFolders = folder.getSubFolders();
             for (PSTFolder childFolder : childFolders) {
-                processFolder(childFolder, writer, attachments, attach, parent, session);
+                processFolder(childFolder, writer, attachments, parent, session);
             }
         }
 
@@ -173,46 +170,35 @@ public class ExtractPSTFile extends AbstractProcessor {
                     );
                 }
 
-                processAttachments(message, email, attachments, attach, parent, session);
+                message.setMessageId(email.getInternetMessageId());
+
+                processAttachments(email, attachments, parent, session);
 
                 writer.append(message.build());
             }
         }
     }
 
-    private void processAttachments(EmailMessage.Builder builder, PSTMessage message, List<FlowFile> attachments, boolean attach, FlowFile parent, ProcessSession session) throws Exception {
-        List<Attachment> _temp = new ArrayList<>();
+    private void processAttachments(PSTMessage message, List<FlowFile> attachments, FlowFile parent, ProcessSession session) throws Exception {
         for (int x = 0; x < message.getNumberOfAttachments(); x++) {
-            PSTAttachment _att = message.getAttachment(x);
-            _temp.add(buildAttachment(_att));
-        }
+            FlowFile _attFlowFile = session.create(parent);
+            try (OutputStream os = session.write(_attFlowFile)) {
+                PSTAttachment attachment = message.getAttachment(x);
+                IOUtils.copy(attachment.getFileInputStream(), os);
+                os.close();
 
-        if (attach) {
-            builder.setAttachments(_temp);
-        } else {
-            for (Attachment attachment : _temp) {
-                SpecificDatumWriter writer = new SpecificDatumWriter(Attachment.class);
-                DataFileWriter<Attachment> fileWriter = new DataFileWriter<>(writer);
-                FlowFile _attFlowFile = session.create(parent);
-                OutputStream os = session.write(_attFlowFile);
-                fileWriter
-                    .create(Attachment.SCHEMA$, os)
-                    .append(attachment);
-                fileWriter.close();
+                Map<String, String> _attrs = new HashMap<>();
+                _attrs.put("filename", attachment.getLongFilename());
+                _attrs.put("source.pst.file", parent.getAttribute("filename"));
+                _attrs.put("source.message.id", message.getInternetMessageId());
 
-                _attFlowFile = session.putAttribute(_attFlowFile, "filename", attachment.getFileName().toString());
+                _attFlowFile = session.putAllAttributes(_attFlowFile, _attrs);
 
                 attachments.add(_attFlowFile);
+            } catch (Exception ex) {
+                session.remove(_attFlowFile);
+                throw ex;
             }
         }
-    }
-
-    private Attachment buildAttachment(PSTAttachment _att) throws Exception {
-        InputStream is = _att.getFileInputStream();
-        return Attachment.newBuilder()
-            .setData(ByteBuffer.wrap(IOUtils.toByteArray(is)))
-            .setFileName(_att.getLongFilename())
-            .setSize(_att.getSize())
-            .build();
     }
 }
