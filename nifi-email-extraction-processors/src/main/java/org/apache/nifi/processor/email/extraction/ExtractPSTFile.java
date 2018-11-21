@@ -6,27 +6,29 @@ import com.pff.PSTFolder;
 import com.pff.PSTMessage;
 import com.pff.PSTRAFileContent;
 import com.pff.PSTRecipient;
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
-import org.apache.nifi.components.AllowableValue;
+import org.apache.nifi.annotation.lifecycle.OnScheduled;
+import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.AbstractProcessor;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
+import org.apache.nifi.serialization.RecordSetWriter;
+import org.apache.nifi.serialization.RecordSetWriterFactory;
+import org.apache.nifi.serialization.record.MapRecord;
+import org.apache.nifi.serialization.record.Record;
+import org.apache.nifi.serialization.record.RecordSchema;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,12 +60,16 @@ public class ExtractPSTFile extends AbstractProcessor {
         .autoTerminateDefault(true)
         .build();
 
-    public static final AllowableValue TRUE = new AllowableValue("true", "True", "Attachments will be added to records.");
-    public static final AllowableValue FALSE = new AllowableValue("false", "False", "Attachments will be sent to the \"attachments\" relationship");
-
+    public static final PropertyDescriptor WRITER = new PropertyDescriptor.Builder()
+        .name("output-writer")
+        .displayName("Writer")
+        .description("Controller service to use for writing the output.")
+        .required(true)
+        .identifiesControllerService(RecordSetWriterFactory.class)
+        .build();
 
     public static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = Collections.unmodifiableList(Arrays.asList(
-
+        WRITER
     ));
 
     public static final Set<Relationship> RELATIONSHIPS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -80,6 +86,15 @@ public class ExtractPSTFile extends AbstractProcessor {
         return RELATIONSHIPS;
     }
 
+    private volatile RecordSetWriterFactory factory;
+    public static final RecordSchema SCHEMA = AvroTypeUtil.createSchema(EmailMessage.SCHEMA$);
+    public static final RecordSchema SENDER_DETAILS_SCHEMA = AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$);
+
+    @OnScheduled
+    public void onScheduled(ProcessContext context) {
+        factory = context.getProperty(WRITER).asControllerService(RecordSetWriterFactory.class);
+    }
+
     @Override
     public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
         FlowFile input = session.get();
@@ -91,21 +106,20 @@ public class ExtractPSTFile extends AbstractProcessor {
         FlowFile output = session.create(input);
         List<FlowFile> attachments = new ArrayList<>();
 
-        try {
+        try (OutputStream ffOut = session.write(output)) {
             _temp = File.createTempFile(input.getAttribute("uuid"), null);
             FileOutputStream out = new FileOutputStream(_temp);
             session.exportTo(input, out);
             out.close();
 
-            SpecificDatumWriter<EmailMessage> datumWriter = new SpecificDatumWriter<>(EmailMessage.class);
-            DataFileWriter<EmailMessage> fileWriter = new DataFileWriter<>(datumWriter);
+            RecordSetWriter writer = factory.createWriter(getLogger(), SCHEMA, ffOut);
             PSTFile file = new PSTFile(new PSTRAFileContent(_temp));
 
-            OutputStream ffOut = session.write(output);
 
-            fileWriter.create(EmailMessage.SCHEMA$, ffOut);
-            processFolder(file.getRootFolder(), fileWriter, attachments, output, session);
-            fileWriter.close();
+            writer.beginRecordSet();
+            processFolder(file.getRootFolder(), writer, attachments, output, session);
+            writer.finishRecordSet();
+            writer.close();
             ffOut.close();
 
             session.transfer(input, REL_ORIGINAL);
@@ -123,14 +137,14 @@ public class ExtractPSTFile extends AbstractProcessor {
             }
             session.remove(output);
             session.transfer(input, REL_FAILURE);
-
+        } finally {
             if (_temp != null) {
                 _temp.delete();
             }
         }
     }
 
-    private void processFolder(PSTFolder folder, DataFileWriter writer, List<FlowFile> attachments, FlowFile parent, ProcessSession session) throws Exception
+    private void processFolder(PSTFolder folder, RecordSetWriter writer, List<FlowFile> attachments, FlowFile parent, ProcessSession session) throws Exception
     {
         if (folder.hasSubfolders()) {
             List<PSTFolder> childFolders = folder.getSubFolders();
@@ -142,39 +156,43 @@ public class ExtractPSTFile extends AbstractProcessor {
         if (folder.getContentCount() > 0) {
             PSTMessage email;
             while ( (email = (PSTMessage)folder.getNextChild()) != null) {
-                EmailMessage.Builder message = EmailMessage.newBuilder()
-                    .setSubject(email.getSubject())
-                    .setFolder(folder.getDisplayName());
+                Map<String, Object> message = new HashMap<>();
+                message.put("subject", email.getSubject());
+                message.put("folder", folder.getDisplayName());
+
                 if (email.getBody() != null) {
-                    message.setBody(email.getBody()).setBodyType(BodyType.PLAIN);
+                    message.put("body", email.getBody());
+                    message.put("body_type", "PLAIN");
                 } else if (email.getBodyHTML() != null) {
-                    message.setBody(email.getBodyHTML()).setBodyType(BodyType.HTML);
+                    message.put("body", email.getBodyHTML());
+                    message.put("body_type", "HTML");
                 } else if (email.getRTFBody() != null) {
-                    message.setBody(email.getRTFBody()).setBodyType(BodyType.RTF);
+                    message.put("body", email.getRTFBody());
+                    message.put("body_type", "RTF");
                 } else {
                     throw new ProcessException("Missing body.");
                 }
 
-                message.setSenderDetails(SenderDetails.newBuilder()
-                        .setName(email.getSenderName())
-                        .setEmailAddress(email.getSenderEmailAddress()).build());
+                Map<String, Object> senderDetails = new HashMap<>();
+                senderDetails.put("name", email.getSenderName());
+                senderDetails.put("email_address", email.getSenderEmailAddress());
+                message.put("sender_details", new MapRecord(SENDER_DETAILS_SCHEMA, senderDetails));
 
-                List<RecipientDetails> recipientDetails = new ArrayList<>();
-                message.setRecipients(recipientDetails);
+                List<Record> recipientDetails = new ArrayList<>();
                 for (int x = 0; x < email.getNumberOfRecipients(); x++) {
                     PSTRecipient recipient = email.getRecipient(x);
-                    recipientDetails.add(RecipientDetails.newBuilder()
-                        .setName(recipient.getDisplayName())
-                        .setEmailAddress(recipient.getEmailAddress())
-                        .build()
-                    );
+                    Map<String, Object> _temp = new HashMap<>();
+                    _temp.put("name", recipient.getDisplayName());
+                    _temp.put("email_address", recipient.getEmailAddress());
+                    recipientDetails.add(new MapRecord(SENDER_DETAILS_SCHEMA, _temp));
                 }
 
-                message.setMessageId(email.getInternetMessageId());
+                message.put("recipients", recipientDetails.toArray());
+                message.put("message_id", email.getInternetMessageId());
 
                 processAttachments(email, attachments, parent, session);
 
-                writer.append(message.build());
+                writer.write(new MapRecord(SCHEMA, message));
             }
         }
     }
@@ -182,9 +200,10 @@ public class ExtractPSTFile extends AbstractProcessor {
     private void processAttachments(PSTMessage message, List<FlowFile> attachments, FlowFile parent, ProcessSession session) throws Exception {
         for (int x = 0; x < message.getNumberOfAttachments(); x++) {
             FlowFile _attFlowFile = session.create(parent);
-            try (OutputStream os = session.write(_attFlowFile)) {
-                PSTAttachment attachment = message.getAttachment(x);
-                IOUtils.copy(attachment.getFileInputStream(), os);
+            PSTAttachment attachment = message.getAttachment(x);
+            try (OutputStream os = session.write(_attFlowFile);
+                 InputStream is = attachment.getFileInputStream()) {
+                IOUtils.copy(is, os);
                 os.close();
 
                 Map<String, String> _attrs = new HashMap<>();

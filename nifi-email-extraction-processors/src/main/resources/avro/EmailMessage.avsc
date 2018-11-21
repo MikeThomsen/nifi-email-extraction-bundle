@@ -29,7 +29,7 @@
 		        "type": "array",
                     "items": {
                     "type": "record",
-                    "name": "RecipientDetails",
+                    "name": "SenderReceiverDetails",
                     "fields": [
                         {
                             "name": "name",
@@ -45,20 +45,7 @@
 		},
 		{
 		    "name": "sender_details",
-		    "type": {
-		        "type": "record",
-		        "name": "SenderDetails",
-		        "fields": [
-		            {
-		                "name": "name",
-		                "type": "string"
-		            },
-		            {
-		                "name": "email_address",
-		                "type": "string"
-		            }
-		        ]
-		    }
+		    "type": "SenderReceiverDetails"
 		},
 		{
             "name": "subject",

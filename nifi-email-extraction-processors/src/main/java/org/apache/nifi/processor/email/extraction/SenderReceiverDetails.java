@@ -12,23 +12,23 @@ import org.apache.avro.message.SchemaStore;
 
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
-public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 7621221805507227933L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"RecipientDetails\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}");
+public class SenderReceiverDetails extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
+  private static final long serialVersionUID = -7814225842608721046L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"SenderReceiverDetails\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
 
-  private static final BinaryMessageEncoder<RecipientDetails> ENCODER =
-      new BinaryMessageEncoder<RecipientDetails>(MODEL$, SCHEMA$);
+  private static final BinaryMessageEncoder<SenderReceiverDetails> ENCODER =
+      new BinaryMessageEncoder<SenderReceiverDetails>(MODEL$, SCHEMA$);
 
-  private static final BinaryMessageDecoder<RecipientDetails> DECODER =
-      new BinaryMessageDecoder<RecipientDetails>(MODEL$, SCHEMA$);
+  private static final BinaryMessageDecoder<SenderReceiverDetails> DECODER =
+      new BinaryMessageDecoder<SenderReceiverDetails>(MODEL$, SCHEMA$);
 
   /**
    * Return the BinaryMessageDecoder instance used by this class.
    */
-  public static BinaryMessageDecoder<RecipientDetails> getDecoder() {
+  public static BinaryMessageDecoder<SenderReceiverDetails> getDecoder() {
     return DECODER;
   }
 
@@ -36,17 +36,17 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
    * Create a new BinaryMessageDecoder instance for this class that uses the specified {@link SchemaStore}.
    * @param resolver a {@link SchemaStore} used to find schemas by fingerprint
    */
-  public static BinaryMessageDecoder<RecipientDetails> createDecoder(SchemaStore resolver) {
-    return new BinaryMessageDecoder<RecipientDetails>(MODEL$, SCHEMA$, resolver);
+  public static BinaryMessageDecoder<SenderReceiverDetails> createDecoder(SchemaStore resolver) {
+    return new BinaryMessageDecoder<SenderReceiverDetails>(MODEL$, SCHEMA$, resolver);
   }
 
-  /** Serializes this RecipientDetails to a ByteBuffer. */
+  /** Serializes this SenderReceiverDetails to a ByteBuffer. */
   public java.nio.ByteBuffer toByteBuffer() throws java.io.IOException {
     return ENCODER.encode(this);
   }
 
-  /** Deserializes a RecipientDetails from a ByteBuffer. */
-  public static RecipientDetails fromByteBuffer(
+  /** Deserializes a SenderReceiverDetails from a ByteBuffer. */
+  public static SenderReceiverDetails fromByteBuffer(
       java.nio.ByteBuffer b) throws java.io.IOException {
     return DECODER.decode(b);
   }
@@ -59,14 +59,14 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
    * to their default values from the schema.  If that is desired then
    * one should use <code>newBuilder()</code>.
    */
-  public RecipientDetails() {}
+  public SenderReceiverDetails() {}
 
   /**
    * All-args constructor.
    * @param name The new value for name
    * @param email_address The new value for email_address
    */
-  public RecipientDetails(java.lang.CharSequence name, java.lang.CharSequence email_address) {
+  public SenderReceiverDetails(java.lang.CharSequence name, java.lang.CharSequence email_address) {
     this.name = name;
     this.email_address = email_address;
   }
@@ -124,36 +124,36 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
   }
 
   /**
-   * Creates a new RecipientDetails RecordBuilder.
-   * @return A new RecipientDetails RecordBuilder
+   * Creates a new SenderReceiverDetails RecordBuilder.
+   * @return A new SenderReceiverDetails RecordBuilder
    */
-  public static org.apache.nifi.processor.email.extraction.RecipientDetails.Builder newBuilder() {
-    return new org.apache.nifi.processor.email.extraction.RecipientDetails.Builder();
+  public static org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder newBuilder() {
+    return new org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder();
   }
 
   /**
-   * Creates a new RecipientDetails RecordBuilder by copying an existing Builder.
+   * Creates a new SenderReceiverDetails RecordBuilder by copying an existing Builder.
    * @param other The existing builder to copy.
-   * @return A new RecipientDetails RecordBuilder
+   * @return A new SenderReceiverDetails RecordBuilder
    */
-  public static org.apache.nifi.processor.email.extraction.RecipientDetails.Builder newBuilder(org.apache.nifi.processor.email.extraction.RecipientDetails.Builder other) {
-    return new org.apache.nifi.processor.email.extraction.RecipientDetails.Builder(other);
+  public static org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder newBuilder(org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder other) {
+    return new org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder(other);
   }
 
   /**
-   * Creates a new RecipientDetails RecordBuilder by copying an existing RecipientDetails instance.
+   * Creates a new SenderReceiverDetails RecordBuilder by copying an existing SenderReceiverDetails instance.
    * @param other The existing instance to copy.
-   * @return A new RecipientDetails RecordBuilder
+   * @return A new SenderReceiverDetails RecordBuilder
    */
-  public static org.apache.nifi.processor.email.extraction.RecipientDetails.Builder newBuilder(org.apache.nifi.processor.email.extraction.RecipientDetails other) {
-    return new org.apache.nifi.processor.email.extraction.RecipientDetails.Builder(other);
+  public static org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder newBuilder(org.apache.nifi.processor.email.extraction.SenderReceiverDetails other) {
+    return new org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder(other);
   }
 
   /**
-   * RecordBuilder for RecipientDetails instances.
+   * RecordBuilder for SenderReceiverDetails instances.
    */
-  public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<RecipientDetails>
-    implements org.apache.avro.data.RecordBuilder<RecipientDetails> {
+  public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<SenderReceiverDetails>
+    implements org.apache.avro.data.RecordBuilder<SenderReceiverDetails> {
 
     private java.lang.CharSequence name;
     private java.lang.CharSequence email_address;
@@ -167,7 +167,7 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(org.apache.nifi.processor.email.extraction.RecipientDetails.Builder other) {
+    private Builder(org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder other) {
       super(other);
       if (isValidValue(fields()[0], other.name)) {
         this.name = data().deepCopy(fields()[0].schema(), other.name);
@@ -180,10 +180,10 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
     }
 
     /**
-     * Creates a Builder by copying an existing RecipientDetails instance
+     * Creates a Builder by copying an existing SenderReceiverDetails instance
      * @param other The existing instance to copy.
      */
-    private Builder(org.apache.nifi.processor.email.extraction.RecipientDetails other) {
+    private Builder(org.apache.nifi.processor.email.extraction.SenderReceiverDetails other) {
             super(SCHEMA$);
       if (isValidValue(fields()[0], other.name)) {
         this.name = data().deepCopy(fields()[0].schema(), other.name);
@@ -208,7 +208,7 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
       * @param value The value of 'name'.
       * @return This builder.
       */
-    public org.apache.nifi.processor.email.extraction.RecipientDetails.Builder setName(java.lang.CharSequence value) {
+    public org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder setName(java.lang.CharSequence value) {
       validate(fields()[0], value);
       this.name = value;
       fieldSetFlags()[0] = true;
@@ -228,7 +228,7 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
       * Clears the value of the 'name' field.
       * @return This builder.
       */
-    public org.apache.nifi.processor.email.extraction.RecipientDetails.Builder clearName() {
+    public org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder clearName() {
       name = null;
       fieldSetFlags()[0] = false;
       return this;
@@ -247,7 +247,7 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
       * @param value The value of 'email_address'.
       * @return This builder.
       */
-    public org.apache.nifi.processor.email.extraction.RecipientDetails.Builder setEmailAddress(java.lang.CharSequence value) {
+    public org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder setEmailAddress(java.lang.CharSequence value) {
       validate(fields()[1], value);
       this.email_address = value;
       fieldSetFlags()[1] = true;
@@ -267,7 +267,7 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
       * Clears the value of the 'email_address' field.
       * @return This builder.
       */
-    public org.apache.nifi.processor.email.extraction.RecipientDetails.Builder clearEmailAddress() {
+    public org.apache.nifi.processor.email.extraction.SenderReceiverDetails.Builder clearEmailAddress() {
       email_address = null;
       fieldSetFlags()[1] = false;
       return this;
@@ -275,9 +275,9 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
 
     @Override
     @SuppressWarnings("unchecked")
-    public RecipientDetails build() {
+    public SenderReceiverDetails build() {
       try {
-        RecipientDetails record = new RecipientDetails();
+        SenderReceiverDetails record = new SenderReceiverDetails();
         record.name = fieldSetFlags()[0] ? this.name : (java.lang.CharSequence) defaultValue(fields()[0]);
         record.email_address = fieldSetFlags()[1] ? this.email_address : (java.lang.CharSequence) defaultValue(fields()[1]);
         return record;
@@ -288,8 +288,8 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
   }
 
   @SuppressWarnings("unchecked")
-  private static final org.apache.avro.io.DatumWriter<RecipientDetails>
-    WRITER$ = (org.apache.avro.io.DatumWriter<RecipientDetails>)MODEL$.createDatumWriter(SCHEMA$);
+  private static final org.apache.avro.io.DatumWriter<SenderReceiverDetails>
+    WRITER$ = (org.apache.avro.io.DatumWriter<SenderReceiverDetails>)MODEL$.createDatumWriter(SCHEMA$);
 
   @Override public void writeExternal(java.io.ObjectOutput out)
     throws java.io.IOException {
@@ -297,8 +297,8 @@ public class RecipientDetails extends org.apache.avro.specific.SpecificRecordBas
   }
 
   @SuppressWarnings("unchecked")
-  private static final org.apache.avro.io.DatumReader<RecipientDetails>
-    READER$ = (org.apache.avro.io.DatumReader<RecipientDetails>)MODEL$.createDatumReader(SCHEMA$);
+  private static final org.apache.avro.io.DatumReader<SenderReceiverDetails>
+    READER$ = (org.apache.avro.io.DatumReader<SenderReceiverDetails>)MODEL$.createDatumReader(SCHEMA$);
 
   @Override public void readExternal(java.io.ObjectInput in)
     throws java.io.IOException {
