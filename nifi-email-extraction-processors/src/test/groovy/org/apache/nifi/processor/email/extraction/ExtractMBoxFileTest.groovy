@@ -17,7 +17,7 @@ class ExtractMBoxFileTest {
         runner.enableControllerService(writer)
         runner.assertValid()
 
-        runner.enqueue(this.class.getResourceAsStream("/201210.mbox"))
+        runner.enqueue(this.class.getResourceAsStream("/201707.mbox"))
         runner.run()
 
         runner.assertTransferCount(ExtractMBoxFile.REL_FAILURE, 0)
