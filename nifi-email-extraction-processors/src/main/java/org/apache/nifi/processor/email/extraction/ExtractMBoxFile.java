@@ -48,6 +48,10 @@ import java.util.UUID;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
 public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
+    static {
+        System.setProperty("mstor.cache.disabled", "true");
+    }
+
     private static final Set<Relationship> RELATIONSHIPS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         REL_FAILURE, REL_ORIGINAL, REL_MESSAGES, REL_ATTACHMENTS
     )));
@@ -121,7 +125,6 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
             props.setProperty("mail.store.protocol", "mstor");
             props.setProperty("mstor.mbox.metadataStrategy", "none");
             props.setProperty("mstor.mbox.cacheBuffers", "disabled");
-            props.setProperty("mstor.cache.disabled", "true");
             props.setProperty("mstor.mbox.bufferStrategy", "mapped");
             props.setProperty("mstor.metadata", "disabled");
             Session mSession = Session.getDefaultInstance(props);
@@ -132,7 +135,8 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
 
             int count = folder.getMessageCount();
 
-            for (Message msg : folder.getMessages()) {
+            for (int index = 0; index < count; index++) {
+                Message msg = folder.getMessage(index + 1);
                 processMessage(folderIdentifier, msg, writer, output, attachments, session);
             }
             writer.finishRecordSet();
