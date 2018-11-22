@@ -1,6 +1,5 @@
 package org.apache.nifi.processor.email.extraction;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
@@ -14,6 +13,7 @@ import org.apache.nifi.serialization.RecordSetWriter;
 import org.apache.nifi.serialization.RecordSetWriterFactory;
 import org.apache.nifi.serialization.record.MapRecord;
 import org.apache.nifi.serialization.record.Record;
+import org.apache.nifi.util.StringUtils;
 
 import javax.mail.Address;
 import javax.mail.Folder;
@@ -88,12 +88,12 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
             Session mSession = Session.getDefaultInstance(props);
             Store store = mSession.getStore(new URLName("mstor:" + _temp.getAbsolutePath()));
             store.connect();
-            Folder inbox = store.getDefaultFolder();
-            inbox.open(Folder.READ_ONLY);
-            int count = inbox.getMessageCount();
+            Folder folder = store.getDefaultFolder();
+            folder.open(Folder.READ_ONLY);
+            int count = folder.getMessageCount();
 
-            for (Message msg : inbox.getMessages()) {
-                processMessage(inbox.getName(), msg, writer);
+            for (Message msg : folder.getMessages()) {
+                processMessage(folder.getName(), msg, writer);
             }
             writer.finishRecordSet();
             writer.close();
@@ -118,6 +118,14 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
     }
 
     private void processMessage(String folder, Message msg, RecordSetWriter writer) throws Exception {
+        if (StringUtils.isBlank(msg.getSubject()) && msg.getFrom() == null) {
+            getLogger().error("Encountered a possibly bad message, skipping...");
+            if (getLogger().isDebugEnabled()) {
+                getLogger().debug(String.format("Bad message:\n\n*****START****\n%s\n*******END******", msg.toString()));
+            }
+            return;
+        }
+
         Map<String, Object> message = new HashMap<>();
         message.put("subject", msg.getSubject());
         message.put("folder", folder);
@@ -144,34 +152,31 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
 
         if (isMultiPart) {
             Multipart multiPart = (Multipart) msg.getContent();
-
-            for (int i = 0; i < multiPart.getCount(); i++) {
-                MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(i);
-                String disposition = part.getDisposition();
-                if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
-
-                } else if (Part.INLINE.equalsIgnoreCase(part.getDisposition())) {
-                    Object o = part.getContent();
-                } else if (disposition == null) {
-                    Object partContent = part.getContent();
-                    if (partContent instanceof Multipart) {
-                        Multipart mp = (Multipart)partContent;
-                        for (int j = 0; j < mp.getCount(); j++) {
-                            MimeBodyPart _part = (MimeBodyPart) mp.getBodyPart(j);
-                            String type = _part.getContentType();
-                            Object obj = _part.getContent();
-                            if (type.contains("text/plain")) {
-                                message.put("body", obj);
-                            }
-                        }
-                    } else {
-                        message.put("body", partContent);
-                    }
-                }
-            }
+            findBody(multiPart, message);
         } else {
             message.put("body", msg.getContent());
         }
         writer.write(new MapRecord(AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), message));
+    }
+
+    private void findBody(Multipart multipart, Map<String, Object> message) throws Exception {
+        int count = multipart.getCount();
+        for (int x = 0; x < count; x++) {
+            MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(x);
+            if (Part.INLINE.equalsIgnoreCase(part.getDisposition())) {
+                String ct = part.getContentType();
+                if (ct.startsWith("text/plain")) {
+                    message.put("body", part.getContent());
+                }
+            }
+            else if (part.getDisposition() == null) {
+                Object content = part.getContent();
+                if (content instanceof Multipart) {
+                    findBody((Multipart)content, message);
+                } else {
+                    message.put("body", content);
+                }
+            }
+        }
     }
 }

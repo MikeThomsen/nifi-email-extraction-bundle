@@ -21,7 +21,7 @@
 		},
 		{
 		    "name": "message_id",
-		    "type": "string"
+		    "type": [ "null", "string" ]
 		},
 		{
 		    "name": "recipients",
