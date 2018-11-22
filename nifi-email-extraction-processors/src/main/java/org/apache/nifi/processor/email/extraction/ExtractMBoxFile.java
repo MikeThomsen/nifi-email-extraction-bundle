@@ -31,7 +31,9 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
 import javax.mail.internet.MimeBodyPart;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,8 +213,17 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         for (int x = 0; x < count; x++) {
             MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(x);
             Object content = part.getContent();
-            if (Part.INLINE.equalsIgnoreCase(part.getDisposition())) {
-                String ct = part.getContentType();
+            String ct = part.getContentType();
+            if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+                InputStream is;
+                if (content instanceof String) {
+                    is = new ByteArrayInputStream(((String)content).getBytes());
+                } else {
+                    is = (InputStream)content;
+                }
+                handleAttachement(folder, ct, is, parent, attachments, session);
+            }
+            else if (Part.INLINE.equalsIgnoreCase(part.getDisposition())) {
                 if (ct.startsWith("text/plain")) {
                     message.put("body", part.getContent());
                 } else if (ct.startsWith("text/html")) {
@@ -231,7 +242,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         }
     }
 
-    private void handleAttachement(String folder, String mime, BASE64DecoderStream stream, FlowFile parent, List<FlowFile> attachments, ProcessSession session) {
+    private void handleAttachement(String folder, String mime, InputStream stream, FlowFile parent, List<FlowFile> attachments, ProcessSession session) {
         String[] parts = mime.split(";");
         Map<String, String> attrs = new HashMap<>();
         attrs.put(CoreAttributes.FILENAME.key(), parts.length == 1
