@@ -7,7 +7,6 @@ import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.components.Validator;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
@@ -31,6 +30,7 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
 import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -81,8 +81,21 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
         .build();
 
+    public static final AllowableValue ERROR_CONTINUE = new AllowableValue("continue", "Continue", "Try to keep parsing " +
+            "and commit.");
+    public static final AllowableValue ERROR_SEND_TO_FAILURE = new AllowableValue("failure", "Send to Failure Relationship",
+    "Remove all work attempted so far and send the input flowfile to the failure relationship.");
+    public static final PropertyDescriptor ERROR_STRATEGY = new PropertyDescriptor.Builder()
+        .name("extract-mbox-error-strategy")
+        .displayName("Error Strategy")
+        .description("Controlls how errors are handled when parsing.")
+        .required(true)
+        .allowableValues(ERROR_CONTINUE, ERROR_SEND_TO_FAILURE)
+        .defaultValue(ERROR_CONTINUE.getValue())
+        .build();
+
     private static final List<PropertyDescriptor> DESCRIPTORS = Collections.unmodifiableList(Arrays.asList(
-        WRITER, PREFERRED_BODY_TYPE, FOLDER_IDENTIFIER
+        WRITER, PREFERRED_BODY_TYPE, FOLDER_IDENTIFIER, ERROR_STRATEGY
     ));
 
     @Override
@@ -96,10 +109,16 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
     }
 
     private volatile RecordSetWriterFactory factory;
+    private boolean sendToFailure;
+    private String preferredMime;
 
     @OnScheduled
     public void onScheduled(ProcessContext context) {
         factory = context.getProperty(WRITER).asControllerService(RecordSetWriterFactory.class);
+        sendToFailure = context.getProperty(ERROR_STRATEGY).getValue().equals(ERROR_SEND_TO_FAILURE.getValue());
+        preferredMime = context.getProperty(PREFERRED_BODY_TYPE).getValue().equals(HTML.getValue())
+            ? "text/html"
+            : "text/plain";
     }
 
     @Override
@@ -123,6 +142,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
 
             Properties props = new Properties();
             props.setProperty("mail.store.protocol", "mstor");
+            props.setProperty("mail.mime.address.strict", "false");
             props.setProperty("mstor.mbox.metadataStrategy", "none");
             props.setProperty("mstor.mbox.cacheBuffers", "disabled");
             props.setProperty("mstor.mbox.bufferStrategy", "mapped");
@@ -136,8 +156,14 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
             int count = folder.getMessageCount();
 
             for (int index = 0; index < count; index++) {
-                Message msg = folder.getMessage(index + 1);
-                processMessage(folderIdentifier, msg, writer, output, attachments, session);
+                try {
+                    Message msg = folder.getMessage(index + 1);
+                    processMessage(folderIdentifier, msg, writer, output, attachments, session);
+                } catch (Exception ex) {
+                    if (sendToFailure) {
+                        throw new ProcessException(ex);
+                    }
+                }
             }
             writer.finishRecordSet();
             writer.close();
@@ -171,16 +197,8 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
     }
 
     private void processMessage(String folder, Message msg, RecordSetWriter writer, FlowFile parent, List<FlowFile> attachments, ProcessSession session) throws Exception {
-        if (StringUtils.isBlank(msg.getSubject()) && msg.getFrom() == null) {
-            getLogger().error("Encountered a possibly bad message, skipping...");
-            if (getLogger().isDebugEnabled()) {
-                getLogger().debug(String.format("Bad message:\n\n*****START****\n%s\n*******END******", msg.toString()));
-            }
-            return;
-        }
-
         Map<String, Object> message = new HashMap<>();
-        message.put("subject", msg.getSubject());
+        message.put("subject", StringUtils.isBlank(msg.getSubject()) ? "" : msg.getSubject());
         message.put("folder", folder);
         String sender = (msg.getFrom()[0]).toString();
         boolean isMultiPart = msg.getContent() instanceof Multipart;
@@ -209,11 +227,15 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         } else {
             message.put("body", msg.getContent());
         }
+
         writer.write(new MapRecord(AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), message));
     }
 
     private void findBody(String folder, Multipart multipart, Map<String, Object> message, FlowFile parent, List<FlowFile> attachments, ProcessSession session) throws Exception {
         int count = multipart.getCount();
+
+        Map<String, String> inlineBodies = new HashMap<>();
+
         for (int x = 0; x < count; x++) {
             MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(x);
             Object content = part.getContent();
@@ -222,16 +244,27 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
                 InputStream is;
                 if (content instanceof String) {
                     is = new ByteArrayInputStream(((String)content).getBytes());
-                } else {
+                } else if (content instanceof InputStream) {
                     is = (InputStream)content;
+                } else if (content instanceof MimeMessage) {
+                    MimeMessage mm = (MimeMessage)content;
+                    content = mm.getContent();
+                    if (content instanceof String) {
+                        is = new ByteArrayInputStream(((String)content).getBytes());
+                    } else {
+                        return; //TODO handle this...
+                    }
+                } else {
+                    return;
                 }
+
                 handleAttachement(folder, ct, is, parent, attachments, session);
             }
             else if (Part.INLINE.equalsIgnoreCase(part.getDisposition())) {
                 if (ct.startsWith("text/plain")) {
-                    message.put("body", part.getContent());
+                    inlineBodies.put("text/plain", (String)content);
                 } else if (ct.startsWith("text/html")) {
-
+                    inlineBodies.put("text/html", (String)content);
                 } else if (content instanceof BASE64DecoderStream) {
                     handleAttachement(folder, ct, (BASE64DecoderStream) content, parent, attachments, session);
                 }
@@ -242,6 +275,21 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
                 } else {
                     message.put("body", content);
                 }
+            }
+        }
+
+        if (inlineBodies.size() > 0) {
+            String body = inlineBodies.get(preferredMime);
+            if (!StringUtils.isBlank(body)) {
+                message.put("body", body);
+                message.put("body_type", preferredMime.equals("text/plain") ? "PLAIN" : "HTML");
+            } else if (StringUtils.isBlank(body) && inlineBodies.size() == 1) {
+                String key = inlineBodies.keySet().iterator().next();
+                message.put("body", inlineBodies.get(key));
+                message.put("body_type", key.equals("text/plain") ? "PLAIN" : "HTML");
+            } else if (StringUtils.isBlank(body) && inlineBodies.size() >= 2) {
+                throw new ProcessException(String.format("Extra/unknown mime types in inline bodies \"%s\"",
+                         inlineBodies.keySet().toString()));
             }
         }
     }
