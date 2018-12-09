@@ -1,0 +1,14 @@
+{
+    "type": "record",
+    "name": "CalendarEntryRecord",
+    "namespace":  "org.apache.nifi.processor.email.extraction",
+    "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "description", "type": "string" },
+        { "name": "date_created", "type": { "type": "long", "logicalType": "timestamp-millis" }},
+        { "name": "start_date", "type": { "type": "long", "logicalType": "timestamp-millis" }},
+        { "name": "end_date", "type": { "type": "long", "logicalType": "timestamp-millis" }},
+        { "name": "summary", "type": "string" },
+        { "name": "url", "type": "string" }
+    ]
+}
