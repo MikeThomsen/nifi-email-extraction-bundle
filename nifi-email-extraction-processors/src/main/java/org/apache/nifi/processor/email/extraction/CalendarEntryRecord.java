@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -6249048876121614147L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"CalendarEntryRecord\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"description\",\"type\":\"string\"},{\"name\":\"date_created\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"start_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"end_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"summary\",\"type\":\"string\"},{\"name\":\"url\",\"type\":\"string\"}]}");
+  private static final long serialVersionUID = 5651187545665175482L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"CalendarEntryRecord\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"description\",\"type\":[\"null\",\"string\"]},{\"name\":\"date_created\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}]},{\"name\":\"start_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"end_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"summary\",\"type\":[\"null\",\"string\"]},{\"name\":\"url\",\"type\":[\"null\",\"string\"]}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -110,7 +110,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
       new org.apache.avro.Conversion<?>[] {
       null,
       null,
-      TIMESTAMP_CONVERSION,
+      null,
       TIMESTAMP_CONVERSION,
       TIMESTAMP_CONVERSION,
       null,
@@ -479,6 +479,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
       * @return This builder.
       */
     public org.apache.nifi.processor.email.extraction.CalendarEntryRecord.Builder clearDateCreated() {
+      date_created = null;
       fieldSetFlags()[2] = false;
       return this;
     }

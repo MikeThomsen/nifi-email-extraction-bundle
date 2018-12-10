@@ -1,0 +1,22 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ZContent.net//Zap Calendar 1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce porttitor faucibus purus bibendum varius.
+UID:d973c0fa-caea-42ed-a8e9-f9f9d0363f13
+SEQUENCE:0
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=2;BYMONTHDAY=12
+DTSTART:20181231
+DTEND:20191231
+DTSTAMP:20181210T141403
+CATEGORIES:Latin,Lorem ipsum
+LOCATION:Washington\, DC
+GEO:37.5739497;-85.7399606
+DESCRIPTION:Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce porttitor faucibus purus bibendum varius.
+URL:https://duckduckgo.com/
+END:VEVENT
+END:VCALENDAR
