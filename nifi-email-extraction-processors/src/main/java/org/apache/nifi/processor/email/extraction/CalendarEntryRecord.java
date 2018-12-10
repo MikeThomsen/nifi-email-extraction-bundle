@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 5651187545665175482L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"CalendarEntryRecord\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"description\",\"type\":[\"null\",\"string\"]},{\"name\":\"date_created\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}]},{\"name\":\"start_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"end_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"summary\",\"type\":[\"null\",\"string\"]},{\"name\":\"url\",\"type\":[\"null\",\"string\"]}]}");
+  private static final long serialVersionUID = -1907699074731119544L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"CalendarEntryRecord\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"description\",\"type\":[\"null\",\"string\"]},{\"name\":\"date_created\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}]},{\"name\":\"start_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"end_date\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}},{\"name\":\"summary\",\"type\":[\"null\",\"string\"]},{\"name\":\"url\",\"type\":[\"null\",\"string\"]},{\"name\":\"attendees\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -58,6 +58,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
   @Deprecated public org.joda.time.DateTime end_date;
   @Deprecated public java.lang.CharSequence summary;
   @Deprecated public java.lang.CharSequence url;
+  @Deprecated public java.util.List<java.lang.CharSequence> attendees;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -75,8 +76,9 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
    * @param end_date The new value for end_date
    * @param summary The new value for summary
    * @param url The new value for url
+   * @param attendees The new value for attendees
    */
-  public CalendarEntryRecord(java.lang.CharSequence name, java.lang.CharSequence description, org.joda.time.DateTime date_created, org.joda.time.DateTime start_date, org.joda.time.DateTime end_date, java.lang.CharSequence summary, java.lang.CharSequence url) {
+  public CalendarEntryRecord(java.lang.CharSequence name, java.lang.CharSequence description, org.joda.time.DateTime date_created, org.joda.time.DateTime start_date, org.joda.time.DateTime end_date, java.lang.CharSequence summary, java.lang.CharSequence url, java.util.List<java.lang.CharSequence> attendees) {
     this.name = name;
     this.description = description;
     this.date_created = date_created;
@@ -84,6 +86,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
     this.end_date = end_date;
     this.summary = summary;
     this.url = url;
+    this.attendees = attendees;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
@@ -97,6 +100,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
     case 4: return end_date;
     case 5: return summary;
     case 6: return url;
+    case 7: return attendees;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -113,6 +117,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
       null,
       TIMESTAMP_CONVERSION,
       TIMESTAMP_CONVERSION,
+      null,
       null,
       null,
       null
@@ -134,6 +139,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
     case 4: end_date = (org.joda.time.DateTime)value$; break;
     case 5: summary = (java.lang.CharSequence)value$; break;
     case 6: url = (java.lang.CharSequence)value$; break;
+    case 7: attendees = (java.util.List<java.lang.CharSequence>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -251,6 +257,22 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
   }
 
   /**
+   * Gets the value of the 'attendees' field.
+   * @return The value of the 'attendees' field.
+   */
+  public java.util.List<java.lang.CharSequence> getAttendees() {
+    return attendees;
+  }
+
+  /**
+   * Sets the value of the 'attendees' field.
+   * @param value the value to set.
+   */
+  public void setAttendees(java.util.List<java.lang.CharSequence> value) {
+    this.attendees = value;
+  }
+
+  /**
    * Creates a new CalendarEntryRecord RecordBuilder.
    * @return A new CalendarEntryRecord RecordBuilder
    */
@@ -289,6 +311,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
     private org.joda.time.DateTime end_date;
     private java.lang.CharSequence summary;
     private java.lang.CharSequence url;
+    private java.util.List<java.lang.CharSequence> attendees;
 
     /** Creates a new Builder */
     private Builder() {
@@ -329,6 +352,10 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
         this.url = data().deepCopy(fields()[6].schema(), other.url);
         fieldSetFlags()[6] = true;
       }
+      if (isValidValue(fields()[7], other.attendees)) {
+        this.attendees = data().deepCopy(fields()[7].schema(), other.attendees);
+        fieldSetFlags()[7] = true;
+      }
     }
 
     /**
@@ -364,6 +391,10 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
       if (isValidValue(fields()[6], other.url)) {
         this.url = data().deepCopy(fields()[6].schema(), other.url);
         fieldSetFlags()[6] = true;
+      }
+      if (isValidValue(fields()[7], other.attendees)) {
+        this.attendees = data().deepCopy(fields()[7].schema(), other.attendees);
+        fieldSetFlags()[7] = true;
       }
     }
 
@@ -638,6 +669,45 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
       return this;
     }
 
+    /**
+      * Gets the value of the 'attendees' field.
+      * @return The value.
+      */
+    public java.util.List<java.lang.CharSequence> getAttendees() {
+      return attendees;
+    }
+
+    /**
+      * Sets the value of the 'attendees' field.
+      * @param value The value of 'attendees'.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.CalendarEntryRecord.Builder setAttendees(java.util.List<java.lang.CharSequence> value) {
+      validate(fields()[7], value);
+      this.attendees = value;
+      fieldSetFlags()[7] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'attendees' field has been set.
+      * @return True if the 'attendees' field has been set, false otherwise.
+      */
+    public boolean hasAttendees() {
+      return fieldSetFlags()[7];
+    }
+
+
+    /**
+      * Clears the value of the 'attendees' field.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.CalendarEntryRecord.Builder clearAttendees() {
+      attendees = null;
+      fieldSetFlags()[7] = false;
+      return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public CalendarEntryRecord build() {
@@ -650,6 +720,7 @@ public class CalendarEntryRecord extends org.apache.avro.specific.SpecificRecord
         record.end_date = fieldSetFlags()[4] ? this.end_date : (org.joda.time.DateTime) defaultValue(fields()[4], record.getConversion(4));
         record.summary = fieldSetFlags()[5] ? this.summary : (java.lang.CharSequence) defaultValue(fields()[5], record.getConversion(5));
         record.url = fieldSetFlags()[6] ? this.url : (java.lang.CharSequence) defaultValue(fields()[6], record.getConversion(6));
+        record.attendees = fieldSetFlags()[7] ? this.attendees : (java.util.List<java.lang.CharSequence>) defaultValue(fields()[7], record.getConversion(7));
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);

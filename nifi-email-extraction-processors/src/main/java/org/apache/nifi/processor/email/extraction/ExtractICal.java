@@ -3,7 +3,10 @@ package org.apache.nifi.processor.email.extraction;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.ComponentList;
+import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.DateProperty;
 import net.fortuna.ical4j.util.MapTimeZoneCache;
 import org.apache.nifi.annotation.behavior.InputRequirement;
@@ -25,6 +28,7 @@ import org.apache.nifi.serialization.record.RecordSchema;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -150,6 +154,22 @@ public class ExtractICal extends AbstractProcessor {
         retVal.put("date_created", getDate(event.getCreated()));
         retVal.put("start_date", getDate(event.getStartDate()));
         retVal.put("end_date", getDate(event.getEndDate()));
+
+        PropertyList<Property> properties = event.getProperties();
+        List<String> attendees = new ArrayList<>();
+        for (int index = 0; index < properties.size(); index++) {
+            Property prop = properties.get(index);
+            if (prop instanceof Attendee) {
+                Attendee attendee = (Attendee)prop;
+                String value = attendee.getValue();
+                if (value.startsWith("mailto:")) {
+                    value = value.replace("mailto:", "");
+                }
+                attendees.add(value);
+            }
+        }
+
+        retVal.put("attendees", attendees.toArray());
 
         return retVal;
     }
