@@ -24,7 +24,6 @@ import org.apache.nifi.util.StringUtils;
 import javax.mail.Address;
 import javax.mail.Folder;
 import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
