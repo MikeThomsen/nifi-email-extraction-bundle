@@ -2,6 +2,7 @@ package org.apache.nifi.processor.email.extraction;
 
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
+import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.AbstractProcessor;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
@@ -40,7 +41,8 @@ public abstract class AbstractExtractEmailProcessor extends AbstractProcessor {
 
     public File writeFlowFileToTemp(FlowFile input, ProcessSession session) {
         try {
-            File temp = File.createTempFile(input.getAttribute("uuid"), "");
+            String name = input.getAttribute(CoreAttributes.FILENAME.key()).replaceAll("/", "-");
+            File temp = new File(String.format("/tmp/%s", name));
             FileOutputStream out = new FileOutputStream(temp);
             session.exportTo(input, out);
             out.close();

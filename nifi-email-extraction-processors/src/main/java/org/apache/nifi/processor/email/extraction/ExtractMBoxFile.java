@@ -24,6 +24,7 @@ import org.apache.nifi.util.StringUtils;
 import javax.mail.Address;
 import javax.mail.Folder;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
@@ -130,6 +131,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
 
         FlowFile output = session.create(input);
         File _temp = null;
+        Store store = null;
         List<FlowFile> attachments = new ArrayList<>();
 
         String folderIdentifier = context.getProperty(FOLDER_IDENTIFIER).evaluateAttributeExpressions(input).getValue();
@@ -148,7 +150,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
             props.setProperty("mstor.mbox.bufferStrategy", "mapped");
             props.setProperty("mstor.metadata", "disabled");
             Session mSession = Session.getDefaultInstance(props);
-            Store store = mSession.getStore(new URLName("mstor:" + _temp.getAbsolutePath()));
+            store = mSession.getStore(new URLName("mstor:" + _temp.getAbsolutePath()));
             store.connect();
             Folder folder = store.getDefaultFolder();
             folder.open(Folder.READ_ONLY);
@@ -161,10 +163,14 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
                     processMessage(folderIdentifier, msg, writer, output, attachments, session);
                 } catch (Exception ex) {
                     if (sendToFailure) {
+                        folder.close(false);
+                        store.close();
                         throw new ProcessException(ex);
                     }
                 }
             }
+            folder.close(false);
+            store.close();
             writer.finishRecordSet();
             writer.close();
             os.close();
@@ -176,6 +182,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
 
             session.transfer(input, REL_ORIGINAL);
             session.transfer(output, REL_MESSAGES);
+            session.getProvenanceReporter().modifyAttributes(input);
 
             for (FlowFile flowFile : attachments) {
                 session.transfer(flowFile, REL_ATTACHMENTS);
@@ -189,6 +196,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
 
             session.remove(output);
             session.transfer(input, REL_FAILURE);
+            session.getProvenanceReporter().modifyAttributes(input);
         } finally {
             if (_temp != null) {
                 _temp.delete();
