@@ -7,6 +7,10 @@ import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.components.ValidationContext;
+import org.apache.nifi.components.ValidationResult;
+import org.apache.nifi.components.Validator;
+import org.apache.nifi.controller.ConfigurationContext;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
@@ -37,6 +41,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -81,6 +86,33 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
         .build();
 
+    public static final AllowableValue MISSING_FIELD_ERROR = new AllowableValue("error", "As an error",
+            "Treat it as an error event.");
+    public static final AllowableValue MISSING_FIELD_EMPTY = new AllowableValue("empty", "Assign an empty string",
+            "Use an empty string whenever the value is missing.");
+    public static final AllowableValue MISSING_FIELD_VALUE = new AllowableValue("value", "Assign a supplied value",
+            "Assign a value that you specify.");
+    public static final PropertyDescriptor MISSING_FIELD_STRATEGY = new PropertyDescriptor.Builder()
+        .name("extract-mbox-missing-field-strategy")
+        .displayName("Missing Field Strategy")
+        .description("Sometimes fields like the sender field are missing because of poorly constructed email messages. This configuration option controls " +
+                "whether a value should be substituted in its place or have it be treated as an error event.")
+        .allowableValues(MISSING_FIELD_ERROR, MISSING_FIELD_EMPTY, MISSING_FIELD_VALUE)
+        .defaultValue(MISSING_FIELD_ERROR.getValue())
+        .addValidator(Validator.VALID)
+        .required(true)
+        .build();
+    public static final PropertyDescriptor MISSING_FIELD_SUBSTITUTION_VALUE = new PropertyDescriptor.Builder()
+        .name("extract-mbox-missing-field-value")
+        .displayName("Missing Field Substitution Value")
+        .addValidator(Validator.VALID)
+        .required(false)
+        .description("This value is used when the missing field strategy is configured to use the value substitution option. It is mainly" +
+                "useful for scenarios when you need to put in a string to give a cue to a user interface or downstream application that the value " +
+                "is missing.")
+        .build();
+
+
     public static final AllowableValue ERROR_CONTINUE = new AllowableValue("continue", "Continue", "Try to keep parsing " +
             "and commit.");
     public static final AllowableValue ERROR_SEND_TO_FAILURE = new AllowableValue("failure", "Send to Failure Relationship",
@@ -95,7 +127,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         .build();
 
     private static final List<PropertyDescriptor> DESCRIPTORS = Collections.unmodifiableList(Arrays.asList(
-        WRITER, PREFERRED_BODY_TYPE, FOLDER_IDENTIFIER, ERROR_STRATEGY
+        WRITER, PREFERRED_BODY_TYPE, FOLDER_IDENTIFIER, ERROR_STRATEGY, MISSING_FIELD_STRATEGY, MISSING_FIELD_SUBSTITUTION_VALUE
     ));
 
     @Override
@@ -111,6 +143,25 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
     private volatile RecordSetWriterFactory factory;
     private boolean sendToFailure;
     private String preferredMime;
+
+    @Override
+    protected Collection<ValidationResult> customValidate(ValidationContext context) {
+        List<ValidationResult> problems = new ArrayList<>();
+
+        if (context.getProperty(MISSING_FIELD_STRATEGY).isSet()
+                && context.getProperty(MISSING_FIELD_STRATEGY).getValue().equals(MISSING_FIELD_VALUE.getValue())) {
+            String val = context.getProperty(MISSING_FIELD_SUBSTITUTION_VALUE).getValue();
+            if (StringUtils.isEmpty(val)) {
+                problems.add(new ValidationResult.Builder()
+                    .subject(MISSING_FIELD_SUBSTITUTION_VALUE.getName())
+                    .input(val)
+                    .valid(false)
+                    .build());
+            }
+        }
+
+        return problems;
+    }
 
     @OnScheduled
     public void onScheduled(ProcessContext context) {
