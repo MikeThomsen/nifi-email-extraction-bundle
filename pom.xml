@@ -5,11 +5,11 @@
 
     <groupId>org.apache.nifi</groupId>
     <artifactId>nifi-email-extraction-bundle</artifactId>
-    <version>1.8.0</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <properties>
-        <nifi.version>1.8.0</nifi.version>
+        <nifi.version>1.10.0</nifi.version>
         <avro.version>1.8.2</avro.version>
     </properties>
 
@@ -104,7 +104,7 @@
             <dependency>
                 <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-email-extraction-processors</artifactId>
-                <version>${nifi.version}</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
