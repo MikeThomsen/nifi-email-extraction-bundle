@@ -256,6 +256,22 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         }
     }
 
+    private void handleEmailAddress(String email, Map<String, Object> target) {
+        if (email.contains("<") && email.contains(">")) {
+            String[] split = email.split("[\\s]*[\\<]");
+            if (split.length != 2) {
+                getLogger().error(String.format("Got %d tokens from %s, failing this email.", split.length, email));
+                return;
+            }
+
+            target.put("name", split[0].replaceAll("\"", ""));
+            target.put("email_address", split[1].replaceAll("[\\<\\>\\\"]", ""));
+        } else {
+            target.put("name", email);
+            target.put("email_address", email);
+        }
+    }
+
     private void processMessage(String folder, Message msg, RecordSetWriter writer, FlowFile parent, List<FlowFile> attachments, ProcessSession session) throws Exception {
         Map<String, Object> message = new HashMap<>();
         message.put("subject", StringUtils.isBlank(msg.getSubject()) ? "" : msg.getSubject());
@@ -264,8 +280,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         boolean isMultiPart = msg.getContent() instanceof Multipart;
 
         Map<String, Object> senderDetails = new HashMap<>();
-        senderDetails.put("name", sender);
-        senderDetails.put("email_address", sender);
+        handleEmailAddress(sender, senderDetails);
 
         message.put("body_type", "PLAIN");
         message.put("sender_details", new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), senderDetails));
@@ -274,8 +289,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
         List<Record> recipients = new ArrayList<>();
         for (Address address : msg.getAllRecipients()) {
             Map<String, Object> _temp = new HashMap<>();
-            _temp.put("name", address.toString());
-            _temp.put("email_address", address.toString());
+            handleEmailAddress(address.toString(), _temp);
             MapRecord recipient = new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), _temp);
             recipients.add(recipient);
         }
