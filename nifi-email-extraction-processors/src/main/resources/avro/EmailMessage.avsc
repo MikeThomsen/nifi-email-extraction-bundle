@@ -50,6 +50,17 @@
 		{
             "name": "subject",
             "type": "string"
+        },
+        {
+            "name": "in_reply_to",
+            "type": [ "null", "string" ]
+        },
+        {
+            "name": "headers",
+            "type":  {
+                "type": "map",
+                "values": "string"
+            }
         }
 	]
 }

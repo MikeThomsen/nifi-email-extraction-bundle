@@ -10,7 +10,6 @@ import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.ValidationContext;
 import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.components.Validator;
-import org.apache.nifi.controller.ConfigurationContext;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
@@ -27,6 +26,7 @@ import org.apache.nifi.util.StringUtils;
 
 import javax.mail.Address;
 import javax.mail.Folder;
+import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.Multipart;
 import javax.mail.Part;
@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +63,7 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
     )));
 
     public static final String ATTR_PARENT_FOLDER = "parent.folder";
+    public static final String HEADER_IN_REPLY_TO = "In-Reply-To";
 
     public static final AllowableValue PLAIN = new AllowableValue("plain", "Plain Text", "Select the plain text version.");
     public static final AllowableValue HTML  = new AllowableValue("html", "HTML", "Select the HTML version.");
@@ -286,6 +288,18 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
             message.put("body", msg.getContent());
         }
 
+        Enumeration headers = msg.getAllHeaders();
+        Map<String, String> _heads = new HashMap<>();
+        while (headers.hasMoreElements()) {
+            Header header = (Header) headers.nextElement();
+            _heads.put(header.getName(), header.getValue());
+
+            if (header.getName().equals(HEADER_IN_REPLY_TO)) {
+                message.put("in_reply_to", header.getValue());
+            }
+        }
+        message.put("headers", _heads);
+
         writer.write(new MapRecord(AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), message));
     }
 
@@ -350,6 +364,8 @@ public class ExtractMBoxFile extends AbstractExtractEmailProcessor {
                          inlineBodies.keySet().toString()));
             }
         }
+
+
     }
 
     private void handleAttachement(String folder, String mime, InputStream stream, FlowFile parent, List<FlowFile> attachments, ProcessSession session) {
