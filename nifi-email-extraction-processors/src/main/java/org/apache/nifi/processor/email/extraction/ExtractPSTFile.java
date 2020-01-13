@@ -157,6 +157,7 @@ public class ExtractPSTFile extends AbstractProcessor {
             PSTMessage email;
             while ( (email = (PSTMessage)folder.getNextChild()) != null) {
                 Map<String, Object> message = new HashMap<>();
+                message.put("headers", new HashMap<>());
                 message.put("subject", email.getSubject());
                 message.put("folder", folder.getDisplayName());
 
