@@ -1,2 +1,4 @@
+org.apache.nifi.processor.email.extraction.ExtractEMLFile
 org.apache.nifi.processor.email.extraction.ExtractMBoxFile
 org.apache.nifi.processor.email.extraction.ExtractPSTFile
+org.apache.nifi.processor.email.extraction.ExtractICal
