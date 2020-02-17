@@ -14,7 +14,6 @@ import org.apache.nifi.serialization.RecordSetWriter;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
         .description("The maximum number of flowfiles to pull in per session.")
         .addValidator(StandardValidators.NON_NEGATIVE_INTEGER_VALIDATOR)
         .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
-        .defaultValue("0")
+        .defaultValue("1")
         .required(true)
         .build();
 
@@ -54,7 +53,7 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
     @OnScheduled
     public void onScheduled(ProcessContext context) {
         super.onScheduled(context);
-        flowfileCount = context.getProperty(FLOWFILE_COUNT).asInteger();
+        flowfileCount = context.getProperty(FLOWFILE_COUNT).evaluateAttributeExpressions().asInteger();
     }
 
     @Override
@@ -65,12 +64,12 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
         }
 
         FlowFile messages = session.create(flowFiles);
-        List<FlowFile> attachments = new ArrayList<>();
         try (OutputStream os = session.write(messages)) {
             RecordSetWriter writer = factory.createWriter(getLogger(), AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), os, messages.getAttributes());
             writer.beginRecordSet();
 
             flowFiles.forEach(flowFile -> {
+                List<FlowFile> attachments = new ArrayList<>();
                 try (InputStream is = session.read(flowFile)) {
 
                     Properties props = System.getProperties();
@@ -80,13 +79,15 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
                     Session mailSession = Session.getDefaultInstance(props, null);
                     MimeMessage message = new MimeMessage(mailSession, is);
 
-                    processMessage(null, message, writer, messages, attachments, session);
+                    processMessage("", message, writer, messages, attachments, session);
 
                     is.close();
 
                     session.transfer(flowFile, REL_ORIGINAL);
+                    attachments.forEach(attachmentFlowFile -> session.transfer(attachmentFlowFile, REL_ATTACHMENTS));
                 } catch (Exception e) {
                     getLogger().error("", e);
+                    attachments.forEach(attachmentFlowFile -> session.remove(attachmentFlowFile));
                     session.transfer(flowFile, REL_FAILURE);
                 }
             });
@@ -95,9 +96,9 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
             os.close();
 
             session.transfer(messages, REL_MESSAGES);
+
         } catch (Exception ex) {
             getLogger().error("", ex);
-            attachments.forEach(flowFile -> session.remove(flowFile));
             session.remove(messages);
         }
     }
