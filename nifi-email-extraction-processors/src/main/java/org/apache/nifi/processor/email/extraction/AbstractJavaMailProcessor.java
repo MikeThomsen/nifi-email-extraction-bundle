@@ -17,6 +17,7 @@ import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.nifi.serialization.RecordSetWriter;
+import org.apache.nifi.serialization.RecordSetWriterFactory;
 import org.apache.nifi.serialization.record.MapRecord;
 import org.apache.nifi.serialization.record.Record;
 import org.apache.nifi.util.StringUtils;
@@ -115,11 +116,13 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
             .defaultValue(ERROR_CONTINUE.getValue())
             .build();
 
+    protected volatile RecordSetWriterFactory factory;
     protected boolean sendToFailure;
     protected String preferredMime;
 
     @OnScheduled
     public void onScheduled(ProcessContext context) {
+        factory = context.getProperty(WRITER).asControllerService(RecordSetWriterFactory.class);
         sendToFailure = context.getProperty(ERROR_STRATEGY).getValue().equals(ERROR_SEND_TO_FAILURE.getValue());
         preferredMime = context.getProperty(PREFERRED_BODY_TYPE).getValue().equals(HTML.getValue())
                 ? "text/html"

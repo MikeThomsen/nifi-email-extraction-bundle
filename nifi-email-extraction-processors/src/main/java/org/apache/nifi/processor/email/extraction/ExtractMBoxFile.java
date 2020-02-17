@@ -3,18 +3,14 @@ package org.apache.nifi.processor.email.extraction;
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
-import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.ValidationContext;
 import org.apache.nifi.components.ValidationResult;
-import org.apache.nifi.components.Validator;
-import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
-import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.nifi.serialization.RecordSetWriter;
 import org.apache.nifi.serialization.RecordSetWriterFactory;
 import org.apache.nifi.util.StringUtils;
@@ -56,8 +52,6 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
         return RELATIONSHIPS;
     }
 
-    private volatile RecordSetWriterFactory factory;
-
     @Override
     protected Collection<ValidationResult> customValidate(ValidationContext context) {
         List<ValidationResult> problems = new ArrayList<>();
@@ -80,7 +74,6 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
     @OnScheduled
     public void onScheduled(ProcessContext context) {
         super.onScheduled(context);
-        factory = context.getProperty(WRITER).asControllerService(RecordSetWriterFactory.class);
     }
 
     @Override
