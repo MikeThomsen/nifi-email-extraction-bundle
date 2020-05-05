@@ -51,7 +51,9 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
     )));
 
     public static final String ATTR_PARENT_FOLDER = "parent.folder";
+    public static final String ATTR_MESSAGE_ID = "message.id";
     public static final String HEADER_IN_REPLY_TO = "In-Reply-To";
+    public static final String HEADER_MESSAGE_ID = "message-id";
 
     public static final AllowableValue PLAIN = new AllowableValue("plain", "Plain Text", "Select the plain text version.");
     public static final AllowableValue HTML  = new AllowableValue("html", "HTML", "Select the HTML version.");
@@ -149,7 +151,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
         Map<String, Object> message = new HashMap<>();
         message.put("subject", StringUtils.isBlank(msg.getSubject()) ? "" : msg.getSubject());
         message.put("folder", folder);
-        String sender = (msg.getFrom()[0]).toString();
+        String sender = (msg.getFrom() != null && msg.getFrom().length > 0) ? (msg.getFrom()[0]).toString() : "";
         boolean isMultiPart = msg.getContent() instanceof Multipart;
 
         Map<String, Object> senderDetails = new HashMap<>();
@@ -160,37 +162,59 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
         message.put("message_id", String.valueOf(msg.getMessageNumber()));
 
         List<Record> recipients = new ArrayList<>();
-        for (Address address : msg.getAllRecipients()) {
-            Map<String, Object> _temp = new HashMap<>();
-            handleEmailAddress(address.toString(), _temp);
-            MapRecord recipient = new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), _temp);
-            recipients.add(recipient);
+        if (msg.getAllRecipients() != null) {
+            for (Address address : msg.getAllRecipients()) {
+                Map<String, Object> _temp = new HashMap<>();
+                handleEmailAddress(address.toString(), _temp);
+                MapRecord recipient = new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), _temp);
+                recipients.add(recipient);
+            }
         }
         message.put("recipients", recipients.toArray());
 
-        if (isMultiPart) {
-            Multipart multiPart = (Multipart) msg.getContent();
-            findBody(folder, multiPart, message, parent, attachments, session);
-        } else {
-            message.put("body", msg.getContent());
-        }
-
         Enumeration headers = msg.getAllHeaders();
         Map<String, String> _heads = new HashMap<>();
+        String messageId = null;
+
         while (headers.hasMoreElements()) {
             Header header = (Header) headers.nextElement();
             _heads.put(header.getName(), header.getValue());
 
             if (header.getName().equals(HEADER_IN_REPLY_TO)) {
                 message.put("in_reply_to", header.getValue());
+            } else if (header.getName().equalsIgnoreCase(HEADER_MESSAGE_ID)) {
+                messageId = header.getValue();
             }
         }
+
+        if (isMultiPart) {
+            Multipart multiPart = (Multipart) msg.getContent();
+            findBody(folder, messageId, multiPart, message, parent, attachments, session);
+        } else {
+            message.put("body", msg.getContent());
+        }
+
         message.put("headers", _heads);
+
+        addAttachmentInformation(message, attachments);
 
         writer.write(new MapRecord(AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), message));
     }
 
-    protected void findBody(String folder, Multipart multipart, Map<String, Object> message, FlowFile parent, List<FlowFile> attachments, ProcessSession session) throws Exception {
+    protected void addAttachmentInformation(Map<String, Object> message, List<FlowFile> attachments) {
+        List<Map<String, Object>> files = new ArrayList<>();
+        for (FlowFile flowFile : attachments) {
+            Map<String, Object> attrs = new HashMap<>();
+            attrs.put(CoreAttributes.FILENAME.key(), flowFile.getAttribute(CoreAttributes.FILENAME.key()));
+            attrs.put(CoreAttributes.MIME_TYPE.key(), flowFile.getAttribute(CoreAttributes.MIME_TYPE.key()));
+            attrs.put("messageId", flowFile.getAttribute(ATTR_MESSAGE_ID));
+            attrs.put("folder", flowFile.getAttribute(ATTR_PARENT_FOLDER));
+            files.add(attrs);
+        }
+        message.put("attachments", files);
+    }
+
+    protected void findBody(String folder, String messageId, Multipart multipart, Map<String, Object> message, FlowFile parent, List<FlowFile> attachments, ProcessSession session) throws Exception {
         int count = multipart.getCount();
 
         Map<String, String> inlineBodies = new HashMap<>();
@@ -217,7 +241,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
                     return;
                 }
 
-                handleAttachement(folder, ct, is, parent, attachments, session);
+                handleAttachement(folder, messageId, ct, is, parent, attachments, session);
             }
             else if (Part.INLINE.equalsIgnoreCase(part.getDisposition())) {
                 if (ct.startsWith("text/plain")) {
@@ -225,12 +249,12 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
                 } else if (ct.startsWith("text/html")) {
                     inlineBodies.put("text/html", (String)content);
                 } else if (content instanceof BASE64DecoderStream) {
-                    handleAttachement(folder, ct, (BASE64DecoderStream) content, parent, attachments, session);
+                    handleAttachement(folder, messageId, ct, (BASE64DecoderStream) content, parent, attachments, session);
                 }
             }
             else if (part.getDisposition() == null) {
                 if (content instanceof Multipart) {
-                    findBody(folder, (Multipart)content, message, parent, attachments, session);
+                    findBody(folder, messageId, (Multipart)content, message, parent, attachments, session);
                 } else {
                     message.put("body", content);
                 }
@@ -255,7 +279,8 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
 
     }
 
-    protected void handleAttachement(String folder, String mime, InputStream stream, FlowFile parent, List<FlowFile> attachments, ProcessSession session) {
+    protected void handleAttachement(String folder, String messageId, String mime, InputStream stream,
+                                     FlowFile parent, List<FlowFile> attachments, ProcessSession session) {
         String[] parts = mime.split(";");
         Map<String, String> attrs = new HashMap<>();
         attrs.put(CoreAttributes.FILENAME.key(), parts.length == 1
@@ -263,6 +288,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
                 : parts[1].replace("name=", "").trim());
         attrs.put(CoreAttributes.MIME_TYPE.key(), parts[0].trim());
         attrs.put(ATTR_PARENT_FOLDER, folder);
+        attrs.put(ATTR_MESSAGE_ID, messageId);
 
         FlowFile attachment = session.create(parent);
         try (OutputStream os = session.write(attachment)) {

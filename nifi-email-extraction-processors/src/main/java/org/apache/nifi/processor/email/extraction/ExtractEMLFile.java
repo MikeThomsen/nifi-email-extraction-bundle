@@ -85,14 +85,20 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
 
                     session.transfer(flowFile, REL_ORIGINAL);
                     attachments.forEach(attachmentFlowFile -> session.transfer(attachmentFlowFile, REL_ATTACHMENTS));
-                } catch (Exception e) {
-                    getLogger().error("", e);
+                } catch (com.sun.mail.util.DecodingException de) {
+                    //TODO: need an error handling strategy
+                    getLogger().error("Error while processing message.", de);
+                    attachments.forEach(attachmentFlowFile -> session.remove(attachmentFlowFile));
+                    session.transfer(flowFile, REL_FAILURE);
+                }  catch (Exception e) {
+                    getLogger().error("Error while processing message.", e);
                     attachments.forEach(attachmentFlowFile -> session.remove(attachmentFlowFile));
                     session.transfer(flowFile, REL_FAILURE);
                 }
             });
 
             writer.finishRecordSet();
+            writer.close();
             os.close();
 
             session.transfer(messages, REL_MESSAGES);

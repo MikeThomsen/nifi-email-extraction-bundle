@@ -12,7 +12,6 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.serialization.RecordSetWriter;
-import org.apache.nifi.serialization.RecordSetWriterFactory;
 import org.apache.nifi.util.StringUtils;
 
 import javax.mail.Folder;
@@ -103,7 +102,8 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
             props.setProperty("mstor.mbox.cacheBuffers", "disabled");
             props.setProperty("mstor.mbox.bufferStrategy", "mapped");
             props.setProperty("mstor.metadata", "disabled");
-            Session mSession = Session.getDefaultInstance(props);
+            Session mSession = Session.getInstance(props);//  .getDefaultInstance(props);
+            getLogger().info("mstor:" + _temp.getAbsolutePath());
             store = mSession.getStore(new URLName("mstor:" + _temp.getAbsolutePath()));
             store.connect();
             Folder folder = store.getDefaultFolder();
@@ -142,6 +142,7 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
                 session.transfer(flowFile, REL_ATTACHMENTS);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             getLogger().error("Error", ex);
 
             for (FlowFile attachment : attachments) {

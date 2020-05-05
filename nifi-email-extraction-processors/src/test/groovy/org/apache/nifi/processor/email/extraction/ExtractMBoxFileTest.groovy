@@ -5,9 +5,7 @@ import org.apache.nifi.avro.AvroRecordSetWriter
 import org.apache.nifi.schema.access.SchemaAccessUtils
 import org.apache.nifi.util.TestRunners
 import org.junit.Test
-import org.junit.Ignore
 
-@Ignore
 class ExtractMBoxFileTest {
     @Test
     void test() {

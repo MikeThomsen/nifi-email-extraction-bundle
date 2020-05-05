@@ -61,6 +61,16 @@
                 "type": "map",
                 "values": "string"
             }
+        },
+        {
+            "name": "attachments",
+            "type":  [ "null", {
+                "type": "array",
+                "items": {
+                     "type": "map",
+                     "values": "string"
+                 }
+            }]
         }
 	]
 }

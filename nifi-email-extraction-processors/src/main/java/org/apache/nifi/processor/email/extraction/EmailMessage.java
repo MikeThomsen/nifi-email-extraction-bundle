@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = 8444680623200045895L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"EmailMessage\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"body_type\",\"type\":{\"type\":\"enum\",\"name\":\"BodyType\",\"symbols\":[\"HTML\",\"PLAIN\",\"RTF\"]}},{\"name\":\"folder\",\"type\":\"string\"},{\"name\":\"message_id\",\"type\":[\"null\",\"string\"]},{\"name\":\"recipients\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"SenderReceiverDetails\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}}},{\"name\":\"sender_details\",\"type\":\"SenderReceiverDetails\"},{\"name\":\"subject\",\"type\":\"string\"},{\"name\":\"in_reply_to\",\"type\":[\"null\",\"string\"]},{\"name\":\"headers\",\"type\":{\"type\":\"map\",\"values\":\"string\"}}]}");
+  private static final long serialVersionUID = 2760110782058659005L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"EmailMessage\",\"namespace\":\"org.apache.nifi.processor.email.extraction\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"},{\"name\":\"body_type\",\"type\":{\"type\":\"enum\",\"name\":\"BodyType\",\"symbols\":[\"HTML\",\"PLAIN\",\"RTF\"]}},{\"name\":\"folder\",\"type\":\"string\"},{\"name\":\"message_id\",\"type\":[\"null\",\"string\"]},{\"name\":\"recipients\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"SenderReceiverDetails\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"email_address\",\"type\":\"string\"}]}}},{\"name\":\"sender_details\",\"type\":\"SenderReceiverDetails\"},{\"name\":\"subject\",\"type\":\"string\"},{\"name\":\"in_reply_to\",\"type\":[\"null\",\"string\"]},{\"name\":\"headers\",\"type\":{\"type\":\"map\",\"values\":\"string\"}},{\"name\":\"attachments\",\"type\":[\"null\",{\"type\":\"array\",\"items\":{\"type\":\"map\",\"values\":\"string\"}}]}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -60,6 +60,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
   @Deprecated public java.lang.CharSequence subject;
   @Deprecated public java.lang.CharSequence in_reply_to;
   @Deprecated public java.util.Map<java.lang.CharSequence,java.lang.CharSequence> headers;
+  @Deprecated public java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> attachments;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -79,8 +80,9 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
    * @param subject The new value for subject
    * @param in_reply_to The new value for in_reply_to
    * @param headers The new value for headers
+   * @param attachments The new value for attachments
    */
-  public EmailMessage(java.lang.CharSequence body, org.apache.nifi.processor.email.extraction.BodyType body_type, java.lang.CharSequence folder, java.lang.CharSequence message_id, java.util.List<org.apache.nifi.processor.email.extraction.SenderReceiverDetails> recipients, org.apache.nifi.processor.email.extraction.SenderReceiverDetails sender_details, java.lang.CharSequence subject, java.lang.CharSequence in_reply_to, java.util.Map<java.lang.CharSequence,java.lang.CharSequence> headers) {
+  public EmailMessage(java.lang.CharSequence body, org.apache.nifi.processor.email.extraction.BodyType body_type, java.lang.CharSequence folder, java.lang.CharSequence message_id, java.util.List<org.apache.nifi.processor.email.extraction.SenderReceiverDetails> recipients, org.apache.nifi.processor.email.extraction.SenderReceiverDetails sender_details, java.lang.CharSequence subject, java.lang.CharSequence in_reply_to, java.util.Map<java.lang.CharSequence,java.lang.CharSequence> headers, java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> attachments) {
     this.body = body;
     this.body_type = body_type;
     this.folder = folder;
@@ -90,6 +92,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     this.subject = subject;
     this.in_reply_to = in_reply_to;
     this.headers = headers;
+    this.attachments = attachments;
   }
 
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
@@ -105,6 +108,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     case 6: return subject;
     case 7: return in_reply_to;
     case 8: return headers;
+    case 9: return attachments;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -122,6 +126,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     case 6: subject = (java.lang.CharSequence)value$; break;
     case 7: in_reply_to = (java.lang.CharSequence)value$; break;
     case 8: headers = (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>)value$; break;
+    case 9: attachments = (java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -271,6 +276,22 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
   }
 
   /**
+   * Gets the value of the 'attachments' field.
+   * @return The value of the 'attachments' field.
+   */
+  public java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> getAttachments() {
+    return attachments;
+  }
+
+  /**
+   * Sets the value of the 'attachments' field.
+   * @param value the value to set.
+   */
+  public void setAttachments(java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> value) {
+    this.attachments = value;
+  }
+
+  /**
    * Creates a new EmailMessage RecordBuilder.
    * @return A new EmailMessage RecordBuilder
    */
@@ -312,6 +333,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
     private java.lang.CharSequence subject;
     private java.lang.CharSequence in_reply_to;
     private java.util.Map<java.lang.CharSequence,java.lang.CharSequence> headers;
+    private java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> attachments;
 
     /** Creates a new Builder */
     private Builder() {
@@ -363,6 +385,10 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
         this.headers = data().deepCopy(fields()[8].schema(), other.headers);
         fieldSetFlags()[8] = true;
       }
+      if (isValidValue(fields()[9], other.attachments)) {
+        this.attachments = data().deepCopy(fields()[9].schema(), other.attachments);
+        fieldSetFlags()[9] = true;
+      }
     }
 
     /**
@@ -407,6 +433,10 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       if (isValidValue(fields()[8], other.headers)) {
         this.headers = data().deepCopy(fields()[8].schema(), other.headers);
         fieldSetFlags()[8] = true;
+      }
+      if (isValidValue(fields()[9], other.attachments)) {
+        this.attachments = data().deepCopy(fields()[9].schema(), other.attachments);
+        fieldSetFlags()[9] = true;
       }
     }
 
@@ -796,6 +826,45 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
       return this;
     }
 
+    /**
+      * Gets the value of the 'attachments' field.
+      * @return The value.
+      */
+    public java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> getAttachments() {
+      return attachments;
+    }
+
+    /**
+      * Sets the value of the 'attachments' field.
+      * @param value The value of 'attachments'.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder setAttachments(java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>> value) {
+      validate(fields()[9], value);
+      this.attachments = value;
+      fieldSetFlags()[9] = true;
+      return this;
+    }
+
+    /**
+      * Checks whether the 'attachments' field has been set.
+      * @return True if the 'attachments' field has been set, false otherwise.
+      */
+    public boolean hasAttachments() {
+      return fieldSetFlags()[9];
+    }
+
+
+    /**
+      * Clears the value of the 'attachments' field.
+      * @return This builder.
+      */
+    public org.apache.nifi.processor.email.extraction.EmailMessage.Builder clearAttachments() {
+      attachments = null;
+      fieldSetFlags()[9] = false;
+      return this;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public EmailMessage build() {
@@ -814,6 +883,7 @@ public class EmailMessage extends org.apache.avro.specific.SpecificRecordBase im
         record.subject = fieldSetFlags()[6] ? this.subject : (java.lang.CharSequence) defaultValue(fields()[6]);
         record.in_reply_to = fieldSetFlags()[7] ? this.in_reply_to : (java.lang.CharSequence) defaultValue(fields()[7]);
         record.headers = fieldSetFlags()[8] ? this.headers : (java.util.Map<java.lang.CharSequence,java.lang.CharSequence>) defaultValue(fields()[8]);
+        record.attachments = fieldSetFlags()[9] ? this.attachments : (java.util.List<java.util.Map<java.lang.CharSequence,java.lang.CharSequence>>) defaultValue(fields()[9]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);
