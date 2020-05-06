@@ -1,6 +1,8 @@
 package org.apache.nifi.processor.email.extraction;
 
 import org.apache.nifi.annotation.behavior.InputRequirement;
+import org.apache.nifi.annotation.documentation.CapabilityDescription;
+import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.PropertyDescriptor;
@@ -32,6 +34,9 @@ import java.util.Properties;
 import java.util.Set;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
+@Tags({ "mbox", "email", "messages", "extract" })
+@CapabilityDescription("This processor extracts messages and attachments from a MBox file and groups the messages " +
+        "into a record set.")
 public class ExtractMBoxFile extends AbstractJavaMailProcessor {
     static {
         System.setProperty("mstor.cache.disabled", "true");

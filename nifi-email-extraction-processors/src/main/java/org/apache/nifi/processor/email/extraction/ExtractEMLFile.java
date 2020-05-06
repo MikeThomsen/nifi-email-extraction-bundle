@@ -1,5 +1,8 @@
 package org.apache.nifi.processor.email.extraction;
 
+import org.apache.nifi.annotation.behavior.InputRequirement;
+import org.apache.nifi.annotation.documentation.CapabilityDescription;
+import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.PropertyDescriptor;
@@ -23,6 +26,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+@InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
+@Tags({ "email", "messages", "extract", "eml" })
+@CapabilityDescription("This processor extracts messages and attachments from EML files and groups the messages into a " +
+        "record set.")
 public class ExtractEMLFile extends AbstractJavaMailProcessor {
     public static final PropertyDescriptor FLOWFILE_COUNT = new PropertyDescriptor.Builder()
         .name("extract-eml-flowfile-content")

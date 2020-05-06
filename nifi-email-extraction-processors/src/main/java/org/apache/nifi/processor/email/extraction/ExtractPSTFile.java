@@ -40,7 +40,8 @@ import java.util.Set;
 
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
 @Tags({ "microsoft", "outlook", "email", "messages", "extract", "pst" })
-@CapabilityDescription("This processor extracts messages from a Microsoft Outlook PST file.")
+@CapabilityDescription("This processor extracts messages and attachments from a Microsoft Outlook PST file and " +
+        "groups the messages into a record set.")
 public class ExtractPSTFile extends AbstractProcessor {
     public static final Relationship REL_FAILURE = new Relationship.Builder()
         .name("failure")
