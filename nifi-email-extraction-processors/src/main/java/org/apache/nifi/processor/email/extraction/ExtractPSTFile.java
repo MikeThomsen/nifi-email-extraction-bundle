@@ -21,14 +21,17 @@ import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.serialization.RecordSetWriter;
 import org.apache.nifi.serialization.RecordSetWriterFactory;
+import org.apache.nifi.serialization.SimpleDateFormatValidator;
 import org.apache.nifi.serialization.record.MapRecord;
 import org.apache.nifi.serialization.record.Record;
 import org.apache.nifi.serialization.record.RecordSchema;
+import org.apache.nifi.util.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -155,6 +158,7 @@ public class ExtractPSTFile extends AbstractProcessor {
         }
 
         if (folder.getContentCount() > 0) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             PSTMessage email;
             while ( (email = (PSTMessage)folder.getNextChild()) != null) {
                 Map<String, Object> message = new HashMap<>();
@@ -191,6 +195,31 @@ public class ExtractPSTFile extends AbstractProcessor {
 
                 message.put("recipients", recipientDetails.toArray());
                 message.put("message_id", email.getInternetMessageId());
+
+                Map<String, Object> headers = new HashMap<>();
+                message.put("headers", headers);
+
+                String[] headerSplit = email.getTransportMessageHeaders().split("[\\r\\n]");
+                for (String header : headerSplit) {
+                    if (StringUtils.isEmpty(header)) {
+                        continue;
+                    }
+                    String[] split = header.split("[\\:][\\s]{1,}");
+                    if (split.length != 2) {
+                        getLogger().info(String.format("Skipping header: \"%s\"", header));
+                    }
+
+                    if (split[0].equalsIgnoreCase("date")) {
+                        String[] temp = split[1].split(",");
+                        if (temp.length == 4) {
+                            headers.put("Date", String.format("%s, %s", temp[0], temp[1]));
+                        } else {
+                            headers.put("Date", split[1]);
+                        }
+                    } else {
+                        headers.put(split[0], split[1]);
+                    }
+                }
 
                 processAttachments(email, attachments, parent, session);
 
