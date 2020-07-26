@@ -3,8 +3,8 @@ package org.apache.nifi.processor.email.extraction
 import org.apache.nifi.avro.AvroRecordSetWriter
 import org.apache.nifi.schema.access.SchemaAccessUtils
 import org.apache.nifi.util.TestRunners
+import org.junit.Assert
 import org.junit.Test
-import org.testng.Assert
 
 class ExtractICalTest {
     @Test
