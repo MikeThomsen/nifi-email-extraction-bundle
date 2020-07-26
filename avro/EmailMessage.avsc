@@ -2,75 +2,84 @@
 	"namespace": "org.apache.nifi.processor.email.extraction",
 	"type": "record",
 	"name": "EmailMessage",
-	"fields": [
-		{
-			"name": "body",
-			"type": "string"
-		},
-		{
-			"name": "body_type",
+	"fields": [{
+			"name": "bodies",
 			"type": {
-				"name": "BodyType",
-				"type": "enum",
-				"symbols": [ "HTML", "PLAIN", "RTF" ]
+				"type": "array",
+				"items": {
+					"type": "record",
+					"name": "BodyRecord",
+					"fields": [{
+							"name": "body",
+							"type": "string"
+						},
+						{
+							"name": "body_type",
+							"type": {
+								"name": "BodyType",
+								"type": "enum",
+								"symbols": ["HTML", "PLAIN", "RTF"]
+							}
+						}
+					]
+				}
 			}
 		},
 		{
-		    "name": "folder",
-		    "type": "string"
+			"name": "folder",
+			"type": "string"
 		},
 		{
-		    "name": "message_id",
-		    "type": [ "null", "string" ]
+			"name": "message_id",
+			"type": ["null", "string"]
 		},
 		{
-		    "name": "recipients",
-		    "type": {
-		        "type": "array",
-                    "items": {
-                    "type": "record",
-                    "name": "SenderReceiverDetails",
-                    "fields": [
-                        {
-                            "name": "name",
-                            "type": "string"
-                        },
-                        {
-                            "name": "email_address",
-                            "type": "string"
-                        }
-                    ]
-                }
-            }
+			"name": "recipients",
+			"type": {
+				"type": "array",
+				"items": {
+					"type": "record",
+					"name": "SenderReceiverDetails",
+					"fields": [{
+							"name": "name",
+							"type": "string"
+						},
+						{
+							"name": "email_address",
+							"type": "string"
+						}
+					]
+				}
+			}
 		},
 		{
-		    "name": "sender_details",
-		    "type": "SenderReceiverDetails"
+			"name": "sender_details",
+			"type": "SenderReceiverDetails"
 		},
 		{
-            "name": "subject",
-            "type": "string"
-        },
-        {
-            "name": "in_reply_to",
-            "type": [ "null", "string" ]
-        },
-        {
-            "name": "headers",
-            "type":  {
-                "type": "map",
-                "values": "string"
-            }
-        },
-        {
-            "name": "attachments",
-            "type":  [ "null", {
-                "type": "array",
-                "items": {
-                     "type": "map",
-                     "values": "string"
-                 }
-            }]
-        }
+			"name": "subject",
+			"type": "string"
+		},
+		{
+			"name": "in_reply_to",
+			"type": ["null", "string"]
+		},
+		{
+			"name": "headers",
+			"type": {
+				"type": "map",
+				"values": "string"
+			}
+		},
+		{
+			"name": "attachments",
+			"type": ["null", {
+				"type": "array",
+				"items": {
+					"type": "map",
+					"values": "string"
+				}
+			}]
+		}
 	]
 }
