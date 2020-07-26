@@ -42,7 +42,7 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
         .build();
 
     public static final List<PropertyDescriptor> DESCRIPTOR_LIST = Collections.unmodifiableList(Arrays.asList(
-        WRITER, PREFERRED_BODY_TYPE, FLOWFILE_COUNT, ERROR_STRATEGY, MISSING_FIELD_STRATEGY, MISSING_FIELD_SUBSTITUTION_VALUE
+        WRITER, FLOWFILE_COUNT, ERROR_STRATEGY, MISSING_FIELD_STRATEGY, MISSING_FIELD_SUBSTITUTION_VALUE
     ));
 
     @Override

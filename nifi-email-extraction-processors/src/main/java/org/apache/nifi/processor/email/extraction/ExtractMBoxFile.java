@@ -43,7 +43,7 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
     }
 
     private static final List<PropertyDescriptor> DESCRIPTORS = Collections.unmodifiableList(Arrays.asList(
-        WRITER, PREFERRED_BODY_TYPE, FOLDER_IDENTIFIER, ERROR_STRATEGY, MISSING_FIELD_STRATEGY, MISSING_FIELD_SUBSTITUTION_VALUE
+        WRITER, FOLDER_IDENTIFIER, ERROR_STRATEGY, MISSING_FIELD_STRATEGY, MISSING_FIELD_SUBSTITUTION_VALUE
     ));
 
     @Override

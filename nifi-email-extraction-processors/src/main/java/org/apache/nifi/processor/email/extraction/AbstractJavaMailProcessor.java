@@ -54,15 +54,6 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
 
     public static final AllowableValue PLAIN = new AllowableValue("plain", "Plain Text", "Select the plain text version.");
     public static final AllowableValue HTML  = new AllowableValue("html", "HTML", "Select the HTML version.");
-    public static final PropertyDescriptor PREFERRED_BODY_TYPE = new PropertyDescriptor.Builder()
-            .name("extract-mbox-preferred-body-type")
-            .displayName("Preferred Body Type")
-            .description("Plain text and HTML versions are usually sent in the same message. This option selects which one to send with the " +
-                    "result record.")
-            .allowableValues(PLAIN, HTML)
-            .defaultValue(PLAIN.getValue())
-            .required(true)
-            .build();
 
     public static final PropertyDescriptor FOLDER_IDENTIFIER = new PropertyDescriptor.Builder()
             .name("extract-mbox-folder-identifier")
@@ -117,15 +108,11 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
 
     protected volatile RecordSetWriterFactory factory;
     protected boolean sendToFailure;
-    protected String preferredMime;
 
     @OnScheduled
     public void onScheduled(ProcessContext context) {
         factory = context.getProperty(WRITER).asControllerService(RecordSetWriterFactory.class);
         sendToFailure = context.getProperty(ERROR_STRATEGY).getValue().equals(ERROR_SEND_TO_FAILURE.getValue());
-        preferredMime = context.getProperty(PREFERRED_BODY_TYPE).getValue().equals(HTML.getValue())
-                ? "text/html"
-                : "text/plain";
     }
 
     protected void handleEmailAddress(String email, Map<String, Object> target) {
@@ -146,6 +133,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
 
     protected void processMessage(String folder, Message msg, RecordSetWriter writer, FlowFile parent, List<FlowFile> attachments, ProcessSession session) throws Exception {
         Map<String, Object> message = new HashMap<>();
+        message.put("bodies", new ArrayList<Map<String, Object>>());
         message.put("subject", StringUtils.isBlank(msg.getSubject()) ? "" : msg.getSubject());
         message.put("folder", folder);
         String sender = (msg.getFrom() != null && msg.getFrom().length > 0) ? (msg.getFrom()[0]).toString() : "";
@@ -154,7 +142,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
         Map<String, Object> senderDetails = new HashMap<>();
         handleEmailAddress(sender, senderDetails);
 
-        message.put("body_type", "PLAIN");
+
         message.put("sender_details", new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), senderDetails));
         message.put("message_id", String.valueOf(msg.getMessageNumber()));
 
@@ -188,7 +176,10 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
             Multipart multiPart = (Multipart) msg.getContent();
             findBody(folder, messageId, multiPart, message, parent, attachments, session);
         } else {
-            message.put("body", msg.getContent());
+            Map<String, Object> body = new HashMap<>();
+            body.put("body", msg.getContent());
+            body.put("body_type", "PLAIN");
+            ((List)message.get("bodies")).add(body);
         }
 
         message.put("headers", _heads);
@@ -253,27 +244,38 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
                 if (content instanceof Multipart) {
                     findBody(folder, messageId, (Multipart)content, message, parent, attachments, session);
                 } else {
-                    message.put("body", content);
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("body", content);
+                    body.put("body_type", ct);
+                    ((List)message.get("bodies")).add(body);
                 }
             }
         }
 
-        if (inlineBodies.size() > 0) {
-            String body = inlineBodies.get(preferredMime);
-            if (!StringUtils.isBlank(body)) {
-                message.put("body", body);
-                message.put("body_type", preferredMime.equals("text/plain") ? "PLAIN" : "HTML");
-            } else if (StringUtils.isBlank(body) && inlineBodies.size() == 1) {
-                String key = inlineBodies.keySet().iterator().next();
-                message.put("body", inlineBodies.get(key));
-                message.put("body_type", key.equals("text/plain") ? "PLAIN" : "HTML");
-            } else if (StringUtils.isBlank(body) && inlineBodies.size() >= 2) {
-                throw new ProcessException(String.format("Extra/unknown mime types in inline bodies \"%s\"",
-                        inlineBodies.keySet().toString()));
-            }
+        if (!inlineBodies.isEmpty()) {
+            final List<Map<String, Object>> bodies = (List<Map<String, Object>>) message.get("bodies");
+            inlineBodies.entrySet().forEach(entry -> {
+                Map<String, Object> body = new HashMap<>();
+                body.put("body", entry.getValue());
+                body.put("body_type", entry.getKey());
+                bodies.add(body);
+            });
         }
 
-
+//        if (inlineBodies.size() > 0) {
+//            String body = inlineBodies.get(preferredMime);
+//            if (!StringUtils.isBlank(body)) {
+//                message.put("body", body);
+//                message.put("body_type", preferredMime.equals("text/plain") ? "PLAIN" : "HTML");
+//            } else if (StringUtils.isBlank(body) && inlineBodies.size() == 1) {
+//                String key = inlineBodies.keySet().iterator().next();
+//                message.put("body", inlineBodies.get(key));
+//                message.put("body_type", key.equals("text/plain") ? "PLAIN" : "HTML");
+//            } else if (StringUtils.isBlank(body) && inlineBodies.size() >= 2) {
+//                throw new ProcessException(String.format("Extra/unknown mime types in inline bodies \"%s\"",
+//                        inlineBodies.keySet().toString()));
+//            }
+//        }
     }
 
     protected void handleAttachement(String folder, String messageId, String mime, InputStream stream,

@@ -147,6 +147,14 @@ public class ExtractPSTFile extends AbstractProcessor {
         }
     }
 
+    private Map<String, String> makeBody(String body, String mime) {
+        Map<String, String> retVal = new HashMap<>();
+        retVal.put("body", body);
+        retVal.put("body_type", mime);
+
+        return retVal;
+    }
+
     private void processFolder(PSTFolder folder, RecordSetWriter writer, List<FlowFile> attachments, FlowFile parent, ProcessSession session) throws Exception
     {
         if (folder.hasSubfolders()) {
@@ -157,7 +165,6 @@ public class ExtractPSTFile extends AbstractProcessor {
         }
 
         if (folder.getContentCount() > 0) {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             PSTMessage email;
             while ( (email = (PSTMessage)folder.getNextChild()) != null) {
                 Map<String, Object> message = new HashMap<>();
@@ -165,15 +172,15 @@ public class ExtractPSTFile extends AbstractProcessor {
                 message.put("subject", email.getSubject());
                 message.put("folder", folder.getDisplayName());
 
+                List<Map<String, String>> bodies = new ArrayList<>();
+                message.put("bodies", bodies);
+
                 if (email.getBody() != null) {
-                    message.put("body", email.getBody());
-                    message.put("body_type", "PLAIN");
+                    bodies.add(makeBody(email.getBody(), "PLAIN"));
                 } else if (email.getBodyHTML() != null) {
-                    message.put("body", email.getBodyHTML());
-                    message.put("body_type", "HTML");
+                    bodies.add(makeBody(email.getBodyHTML(), "HTML"));
                 } else if (email.getRTFBody() != null) {
-                    message.put("body", email.getRTFBody());
-                    message.put("body_type", "RTF");
+                    bodies.add(makeBody(email.getRTFBody(), "RTF"));
                 } else {
                     throw new ProcessException("Missing body.");
                 }
