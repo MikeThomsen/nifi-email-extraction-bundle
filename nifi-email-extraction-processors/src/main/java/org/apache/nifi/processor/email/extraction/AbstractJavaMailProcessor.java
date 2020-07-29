@@ -246,7 +246,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
                 } else {
                     Map<String, Object> body = new HashMap<>();
                     body.put("body", content);
-                    body.put("body_type", ct);
+                    body.put("body_type", ct.toLowerCase().contains("html") ? "HTML" : "PLAIN");
                     ((List)message.get("bodies")).add(body);
                 }
             }
@@ -261,21 +261,6 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
                 bodies.add(body);
             });
         }
-
-//        if (inlineBodies.size() > 0) {
-//            String body = inlineBodies.get(preferredMime);
-//            if (!StringUtils.isBlank(body)) {
-//                message.put("body", body);
-//                message.put("body_type", preferredMime.equals("text/plain") ? "PLAIN" : "HTML");
-//            } else if (StringUtils.isBlank(body) && inlineBodies.size() == 1) {
-//                String key = inlineBodies.keySet().iterator().next();
-//                message.put("body", inlineBodies.get(key));
-//                message.put("body_type", key.equals("text/plain") ? "PLAIN" : "HTML");
-//            } else if (StringUtils.isBlank(body) && inlineBodies.size() >= 2) {
-//                throw new ProcessException(String.format("Extra/unknown mime types in inline bodies \"%s\"",
-//                        inlineBodies.keySet().toString()));
-//            }
-//        }
     }
 
     protected void handleAttachement(String folder, String messageId, String mime, InputStream stream,

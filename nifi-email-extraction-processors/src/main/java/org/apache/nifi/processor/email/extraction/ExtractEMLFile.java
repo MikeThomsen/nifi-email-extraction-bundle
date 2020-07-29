@@ -111,6 +111,7 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
             session.transfer(messages, REL_MESSAGES);
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             getLogger().error("", ex);
             session.remove(messages);
         }
