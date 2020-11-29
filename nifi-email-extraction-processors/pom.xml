@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.apache.nifi</groupId>
         <artifactId>nifi-email-extraction-bundle</artifactId>
-        <version>1.0.3</version>
+        <version>1.0.4</version>
     </parent>
 
     <groupId>org.apache.nifi</groupId>
     <artifactId>nifi-email-extraction-processors</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <dependencies>
