@@ -1,5 +1,6 @@
 package org.apache.nifi.processor.email.extraction;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
@@ -14,7 +15,6 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.serialization.RecordSetWriter;
-import org.apache.nifi.util.StringUtils;
 
 import javax.mail.Folder;
 import javax.mail.Message;

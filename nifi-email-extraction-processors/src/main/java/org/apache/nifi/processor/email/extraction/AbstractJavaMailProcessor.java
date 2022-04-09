@@ -2,6 +2,7 @@ package org.apache.nifi.processor.email.extraction;
 
 import com.sun.mail.util.BASE64DecoderStream;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.AllowableValue;
@@ -19,7 +20,6 @@ import org.apache.nifi.serialization.RecordSetWriter;
 import org.apache.nifi.serialization.RecordSetWriterFactory;
 import org.apache.nifi.serialization.record.MapRecord;
 import org.apache.nifi.serialization.record.Record;
-import org.apache.nifi.util.StringUtils;
 
 import javax.mail.Address;
 import javax.mail.Header;
