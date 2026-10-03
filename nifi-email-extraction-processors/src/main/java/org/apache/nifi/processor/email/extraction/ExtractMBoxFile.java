@@ -21,8 +21,8 @@ import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
-import java.io.File;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -88,8 +88,9 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
         }
 
         FlowFile output = session.create(input);
-        File _temp = null;
+        Path _temp = null;
         Store store = null;
+        Folder folder = null;
         List<FlowFile> attachments = new ArrayList<>();
 
         String folderIdentifier = context.getProperty(FOLDER_IDENTIFIER).evaluateAttributeExpressions(input).getValue();
@@ -108,10 +109,11 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
             props.setProperty("mstor.mbox.bufferStrategy", "mapped");
             props.setProperty("mstor.metadata", "disabled");
             Session mSession = Session.getInstance(props);//  .getDefaultInstance(props);
-            getLogger().info("mstor:" + _temp.getAbsolutePath());
-            store = mSession.getStore(new URLName("mstor:" + _temp.getAbsolutePath()));
+            String mboxPath = _temp.toAbsolutePath().toString();
+            getLogger().debug("Reading mbox content spooled to {}", mboxPath);
+            store = mSession.getStore(new URLName("mstor:" + mboxPath));
             store.connect();
-            Folder folder = store.getDefaultFolder();
+            folder = store.getDefaultFolder();
             folder.open(Folder.READ_ONLY);
 
             int count = folder.getMessageCount();
@@ -122,14 +124,10 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
                     processMessage(folderIdentifier, msg, writer, output, attachments, session);
                 } catch (Exception ex) {
                     if (sendToFailure) {
-                        folder.close(false);
-                        store.close();
                         throw new ProcessException(ex);
                     }
                 }
             }
-            folder.close(false);
-            store.close();
             writer.finishRecordSet();
             writer.close();
             os.close();
@@ -158,8 +156,27 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
             session.transfer(input, REL_FAILURE);
             session.getProvenanceReporter().modifyAttributes(input);
         } finally {
+            // The store holds the spooled file open, so it has to be released first.
+            closeQuietly(folder, store);
             if (_temp != null) {
-                _temp.delete();
+                deleteTempFile(_temp);
+            }
+        }
+    }
+
+    private void closeQuietly(Folder folder, Store store) {
+        if (folder != null && folder.isOpen()) {
+            try {
+                folder.close(false);
+            } catch (Exception ex) {
+                getLogger().warn("Could not close the mbox folder.", ex);
+            }
+        }
+        if (store != null) {
+            try {
+                store.close();
+            } catch (Exception ex) {
+                getLogger().warn("Could not close the mbox store.", ex);
             }
         }
     }

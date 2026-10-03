@@ -15,7 +15,6 @@ import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.avro.AvroTypeUtil;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
-import org.apache.nifi.processor.AbstractProcessor;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
@@ -26,10 +25,10 @@ import org.apache.nifi.serialization.record.MapRecord;
 import org.apache.nifi.serialization.record.Record;
 import org.apache.nifi.serialization.record.RecordSchema;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,33 +42,7 @@ import java.util.Set;
 @Tags({ "microsoft", "outlook", "email", "messages", "extract", "pst" })
 @CapabilityDescription("This processor extracts messages and attachments from a Microsoft Outlook PST file and " +
         "groups the messages into a record set.")
-public class ExtractPSTFile extends AbstractProcessor {
-    public static final Relationship REL_FAILURE = new Relationship.Builder()
-        .name("failure")
-        .description("All flowfiles that fail extraction are sent to this relationship.")
-        .build();
-    public static final Relationship REL_ORIGINAL = new Relationship.Builder()
-            .name("original")
-            .description("All original input flowfiles go to this relationship after successful extraction.")
-            .build();
-    public static final Relationship REL_MESSAGES = new Relationship.Builder()
-        .name("messages")
-        .description("Extracted messages are sent to this relationship.")
-        .build();
-    public static final Relationship REL_ATTACHMENTS = new Relationship.Builder()
-        .name("attachments")
-        .description("Attachments can be sent to this relationship if configured.")
-        .autoTerminateDefault(true)
-        .build();
-
-    public static final PropertyDescriptor WRITER = new PropertyDescriptor.Builder()
-        .name("output-writer")
-        .displayName("Writer")
-        .description("Controller service to use for writing the output.")
-        .required(true)
-        .identifiesControllerService(RecordSetWriterFactory.class)
-        .build();
-
+public class ExtractPSTFile extends AbstractExtractEmailProcessor {
     public static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = Collections.unmodifiableList(Arrays.asList(
         WRITER
     ));
@@ -104,19 +77,16 @@ public class ExtractPSTFile extends AbstractProcessor {
             return;
         }
 
-        File _temp = null;
+        Path _temp = null;
+        PSTFile file = null;
         FlowFile output = session.create(input);
         List<FlowFile> attachments = new ArrayList<>();
 
         try (OutputStream ffOut = session.write(output)) {
-            _temp = File.createTempFile(input.getAttribute("uuid"), null);
-            FileOutputStream out = new FileOutputStream(_temp);
-            session.exportTo(input, out);
-            out.close();
+            _temp = writeFlowFileToTemp(input, session);
 
             RecordSetWriter writer = factory.createWriter(getLogger(), SCHEMA, ffOut, input);
-            PSTFile file = new PSTFile(new PSTRAFileContent(_temp));
-
+            file = new PSTFile(new PSTRAFileContent(_temp.toFile()));
 
             writer.beginRecordSet();
             processFolder(file.getRootFolder(), writer, attachments, output, session);
@@ -140,8 +110,17 @@ public class ExtractPSTFile extends AbstractProcessor {
             session.remove(output);
             session.transfer(input, REL_FAILURE);
         } finally {
+            // PSTFile keeps a RandomAccessFile open on the spooled file, so it has to be
+            // released before the file can be cleaned up.
+            if (file != null) {
+                try {
+                    file.close();
+                } catch (IOException ex) {
+                    getLogger().warn("Could not close the PST file.", ex);
+                }
+            }
             if (_temp != null) {
-                _temp.delete();
+                deleteTempFile(_temp);
             }
         }
     }
