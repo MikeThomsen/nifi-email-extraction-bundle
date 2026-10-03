@@ -9,8 +9,14 @@
     <packaging>pom</packaging>
 
     <properties>
-        <nifi.version>1.15.3</nifi.version>
-        <avro.version>1.8.2</avro.version>
+        <nifi.version>2.12.0</nifi.version>
+        <!-- Must track the Avro version shipped by nifi-avro-record-utils for the NiFi release above. -->
+        <avro.version>1.12.2</avro.version>
+        <!-- javax.mail namespace implementation. mstor has no jakarta.mail (2.x) release, so the
+             bundle stays on the javax namespace and ships the API itself inside the NAR. -->
+        <jakarta.mail.version>1.6.7</jakarta.mail.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <modules>
@@ -24,7 +30,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.8.2</version>
+                <version>5.14.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -34,12 +40,12 @@
                 <artifactId>nifi-email-extraction-model</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
             <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>2.9.9</version>
+                <groupId>org.apache.nifi</groupId>
+                <artifactId>nifi-email-extraction-processors</artifactId>
+                <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
@@ -57,11 +63,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-json-utils</artifactId>
-                <version>${nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-mock</artifactId>
                 <version>${nifi.version}</version>
                 <scope>test</scope>
@@ -70,15 +71,16 @@
                 <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-mock-record-utils</artifactId>
                 <version>${nifi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-processor-utils</artifactId>
-                <version>${nifi.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-record</artifactId>
+                <version>${nifi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.nifi</groupId>
+                <artifactId>nifi-security-utils-api</artifactId>
                 <version>${nifi.version}</version>
             </dependency>
             <dependency>
@@ -90,6 +92,7 @@
                 <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-record-serialization-services</artifactId>
                 <version>${nifi.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
@@ -101,113 +104,33 @@
                 <artifactId>nifi-utils</artifactId>
                 <version>${nifi.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-email-extraction-processors</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.codehaus.groovy</groupId>
-                <artifactId>groovy-all</artifactId>
-                <version>2.5.4</version>
-                <type>pom</type>
-            </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>1.7.25</version>
-            </dependency>
-
         </dependencies>
     </dependencyManagement>
+
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-eclipse-compiler</artifactId>
-                    <version>3.7.0</version>
-                    <extensions>true</extensions>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.16.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
-                    <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.avro</groupId>
+                    <artifactId>avro-maven-plugin</artifactId>
+                    <version>${avro.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.nifi</groupId>
+                    <artifactId>nifi-nar-maven-plugin</artifactId>
+                    <version>2.4.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.12</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/main/groovy</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-test-source</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/test/groovy</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <!-- Only run for tests -->
-                    <execution>
-                        <id>groovy-tests</id>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                        <configuration>
-                            <compilerId>groovy-eclipse-compiler</compilerId>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-eclipse-compiler</artifactId>
-                        <version>3.7.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-eclipse-batch</artifactId>
-                        <version>3.0.8-01</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
     </build>
 </project>

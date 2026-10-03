@@ -6,7 +6,7 @@ import com.pff.PSTFolder;
 import com.pff.PSTMessage;
 import com.pff.PSTRAFileContent;
 import com.pff.PSTRecipient;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
@@ -114,7 +114,7 @@ public class ExtractPSTFile extends AbstractProcessor {
             session.exportTo(input, out);
             out.close();
 
-            RecordSetWriter writer = factory.createWriter(getLogger(), SCHEMA, ffOut);
+            RecordSetWriter writer = factory.createWriter(getLogger(), SCHEMA, ffOut, input);
             PSTFile file = new PSTFile(new PSTRAFileContent(_temp));
 
 

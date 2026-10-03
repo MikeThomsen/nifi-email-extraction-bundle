@@ -9,17 +9,19 @@
         <version>1.0.4</version>
     </parent>
 
-    <groupId>org.apache.nifi</groupId>
     <artifactId>nifi-email-extraction-processors</artifactId>
-    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- javax.activation was dropped from the JDK, so the NAR has to ship it. -->
         <dependency>
             <groupId>com.sun.activation</groupId>
             <artifactId>jakarta.activation</artifactId>
             <version>1.2.2</version>
         </dependency>
+
+        <!-- Everything below is supplied at runtime by the framework or by
+             nifi-standard-services-api-nar, so none of it belongs inside the NAR. -->
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-api</artifactId>
@@ -32,19 +34,48 @@
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-schema-registry-service-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-utils</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-record</artifactId>
+            <scope>provided</scope>
         </dependency>
+        <!-- Pulled in transitively by nifi-standard-record-utils; declared here only so the
+             parent NAR's copy is used instead of a second one being packaged. -->
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-security-utils-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- The only NiFi record library the NAR actually has to ship. Its API dependencies
+             live in the parent NAR, and exclusions (unlike provided scope) carry through to
+             the NAR module, which is what keeps them from being packaged twice. -->
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-avro-record-utils</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>com.sun.activation</groupId>
-                    <artifactId>javax.activation</artifactId>
+                    <groupId>org.apache.nifi</groupId>
+                    <artifactId>nifi-record</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.nifi</groupId>
+                    <artifactId>nifi-record-serialization-service-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.nifi</groupId>
+                    <artifactId>nifi-schema-registry-service-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.nifi</groupId>
+                    <artifactId>nifi-security-utils-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -53,26 +84,35 @@
             <artifactId>avro</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>[2.9.10.4,)</version>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-email-extraction-model</artifactId>
+        </dependency>
+
+        <!-- Declared directly because the processors use them, even though
+             nifi-avro-record-utils happens to pull both in as well. -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.22.0</version>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <type>pom</type>
-            <scope>test</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.20.0</version>
+        </dependency>
+
+        <!-- The javax.mail API and implementation. mstor resolves the same artifact, so
+             keeping one coordinate avoids shipping two copies of the javax.mail packages. -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>${jakarta.mail.version}</version>
             <exclusions>
                 <exclusion>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-testng</artifactId>
+                    <groupId>com.sun.activation</groupId>
+                    <artifactId>jakarta.activation</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-schema-registry-service-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -84,7 +124,7 @@
         <dependency>
             <groupId>org.mnode.mstor</groupId>
             <artifactId>mstor</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.3</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.activation</groupId>
@@ -96,12 +136,7 @@
         <dependency>
             <groupId>org.mnode.ical4j</groupId>
             <artifactId>ical4j</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-email-extraction-model</artifactId>
+            <version>3.2.19</version>
         </dependency>
 
         <dependency>
@@ -114,49 +149,15 @@
             <artifactId>nifi-mock-record-utils</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-record-serialization-services</artifactId>
-            <version>${nifi.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>1.4.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.activation</groupId>
-                    <artifactId>activation</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.activation</groupId>
-                    <artifactId>activation</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M6</version>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -9,20 +9,13 @@
         <version>1.0.4</version>
     </parent>
 
-    <groupId>org.apache.nifi</groupId>
     <artifactId>nifi-email-extraction-model</artifactId>
-    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-            <version>1.8.2</version>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
         </dependency>
     </dependencies>
 
@@ -31,7 +24,6 @@
             <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
-                <version>1.8.2</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>

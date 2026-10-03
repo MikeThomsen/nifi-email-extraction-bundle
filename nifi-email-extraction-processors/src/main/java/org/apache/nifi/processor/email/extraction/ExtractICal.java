@@ -109,7 +109,7 @@ public class ExtractICal extends AbstractProcessor {
             Calendar calendar = new CalendarBuilder().build(is);
             ComponentList list = calendar.getComponents();
 
-            RecordSetWriter writer = factory.createWriter(getLogger(), SCHEMA, os);
+            RecordSetWriter writer = factory.createWriter(getLogger(), SCHEMA, os, input);
             writer.beginRecordSet();
             for (int index = 0; index < list.size(); index++) {
                 Object current = list.get(index);

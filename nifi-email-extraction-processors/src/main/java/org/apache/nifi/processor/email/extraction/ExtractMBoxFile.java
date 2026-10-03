@@ -97,7 +97,7 @@ public class ExtractMBoxFile extends AbstractJavaMailProcessor {
         try (OutputStream os = session.write(output)) {
             _temp = writeFlowFileToTemp(input, session);
 
-            RecordSetWriter writer = factory.createWriter(getLogger(), AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), os);
+            RecordSetWriter writer = factory.createWriter(getLogger(), AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), os, input);
             writer.beginRecordSet();
 
             Properties props = new Properties();

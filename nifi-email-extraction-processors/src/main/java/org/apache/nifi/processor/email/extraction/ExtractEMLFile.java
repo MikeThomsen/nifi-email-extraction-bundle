@@ -36,7 +36,7 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
         .displayName("Flowfile Count")
         .description("The maximum number of flowfiles to pull in per session.")
         .addValidator(StandardValidators.NON_NEGATIVE_INTEGER_VALIDATOR)
-        .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
+        .expressionLanguageSupported(ExpressionLanguageScope.ENVIRONMENT)
         .defaultValue("1")
         .required(true)
         .build();
