@@ -82,7 +82,7 @@ public class ExtractICal extends AbstractProcessor {
             REL_SUCCESS, REL_FAILURE, REL_ORIGINAL
     )));
 
-    public static final RecordSchema SCHEMA = AvroTypeUtil.createSchema(CalendarEntryRecord.SCHEMA$);
+    public static final RecordSchema SCHEMA = AvroTypeUtil.createSchema(CalendarEntryRecord.SCHEMA);
 
     @Override
     public Set<Relationship> getRelationships() {

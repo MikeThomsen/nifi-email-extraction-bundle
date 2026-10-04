@@ -62,8 +62,8 @@ public class ExtractPSTFile extends AbstractExtractEmailProcessor {
     }
 
     private volatile RecordSetWriterFactory factory;
-    public static final RecordSchema SCHEMA = AvroTypeUtil.createSchema(EmailMessage.SCHEMA$);
-    public static final RecordSchema SENDER_DETAILS_SCHEMA = AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$);
+    public static final RecordSchema SCHEMA = AvroTypeUtil.createSchema(EmailMessage.SCHEMA);
+    public static final RecordSchema SENDER_DETAILS_SCHEMA = AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA);
 
     @OnScheduled
     public void onScheduled(ProcessContext context) {

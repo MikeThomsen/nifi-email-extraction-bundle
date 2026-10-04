@@ -143,7 +143,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
         handleEmailAddress(sender, senderDetails);
 
 
-        message.put("sender_details", new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), senderDetails));
+        message.put("sender_details", new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA), senderDetails));
         message.put("message_id", String.valueOf(msg.getMessageNumber()));
 
         List<Record> recipients = new ArrayList<>();
@@ -151,7 +151,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
             for (Address address : msg.getAllRecipients()) {
                 Map<String, Object> _temp = new HashMap<>();
                 handleEmailAddress(address.toString(), _temp);
-                MapRecord recipient = new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA$), _temp);
+                MapRecord recipient = new MapRecord(AvroTypeUtil.createSchema(SenderReceiverDetails.SCHEMA), _temp);
                 recipients.add(recipient);
             }
         }
@@ -186,7 +186,7 @@ public abstract class AbstractJavaMailProcessor extends AbstractExtractEmailProc
 
         addAttachmentInformation(message, attachments);
 
-        writer.write(new MapRecord(AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), message));
+        writer.write(new MapRecord(AvroTypeUtil.createSchema(EmailMessage.SCHEMA), message));
     }
 
     protected void addAttachmentInformation(Map<String, Object> message, List<FlowFile> attachments) {

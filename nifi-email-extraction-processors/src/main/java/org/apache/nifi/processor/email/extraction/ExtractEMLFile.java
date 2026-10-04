@@ -72,7 +72,7 @@ public class ExtractEMLFile extends AbstractJavaMailProcessor {
 
         FlowFile messages = session.create(flowFiles);
         try (OutputStream os = session.write(messages)) {
-            RecordSetWriter writer = factory.createWriter(getLogger(), AvroTypeUtil.createSchema(EmailMessage.SCHEMA$), os, messages.getAttributes());
+            RecordSetWriter writer = factory.createWriter(getLogger(), AvroTypeUtil.createSchema(EmailMessage.SCHEMA), os, messages.getAttributes());
             writer.beginRecordSet();
 
             flowFiles.forEach(flowFile -> {

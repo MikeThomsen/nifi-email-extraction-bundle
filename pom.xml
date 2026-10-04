@@ -20,7 +20,6 @@
     </properties>
 
     <modules>
-        <module>nifi-email-extraction-model</module>
         <module>nifi-email-extraction-processors</module>
         <module>nifi-email-extraction-nar</module>
     </modules>
@@ -35,11 +34,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.apache.nifi</groupId>
-                <artifactId>nifi-email-extraction-model</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.apache.nifi</groupId>
                 <artifactId>nifi-email-extraction-processors</artifactId>
@@ -121,9 +115,14 @@
                     <version>3.5.6</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.apache.avro</groupId>
-                    <artifactId>avro-maven-plugin</artifactId>
-                    <version>${avro.version}</version>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.6.4</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.nifi</groupId>

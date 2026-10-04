@@ -1,0 +1,130 @@
+{
+  "type": "record",
+  "name": "EmailMessage",
+  "namespace": "org.apache.nifi.processor.email.extraction",
+  "fields": [
+    {
+      "name": "bodies",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "BodyRecord",
+          "fields": [
+            {
+              "name": "body",
+              "type": {
+                "type": "string",
+                "avro.java.string": "String"
+              }
+            },
+            {
+              "name": "body_type",
+              "type": {
+                "type": "enum",
+                "name": "BodyType",
+                "symbols": [
+                  "HTML",
+                  "PLAIN",
+                  "RTF"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "folder",
+      "type": {
+        "type": "string",
+        "avro.java.string": "String"
+      }
+    },
+    {
+      "name": "message_id",
+      "type": [
+        "null",
+        {
+          "type": "string",
+          "avro.java.string": "String"
+        }
+      ]
+    },
+    {
+      "name": "recipients",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "SenderReceiverDetails",
+          "fields": [
+            {
+              "name": "name",
+              "type": {
+                "type": "string",
+                "avro.java.string": "String"
+              }
+            },
+            {
+              "name": "email_address",
+              "type": {
+                "type": "string",
+                "avro.java.string": "String"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "sender_details",
+      "type": "SenderReceiverDetails"
+    },
+    {
+      "name": "subject",
+      "type": {
+        "type": "string",
+        "avro.java.string": "String"
+      }
+    },
+    {
+      "name": "in_reply_to",
+      "type": [
+        "null",
+        {
+          "type": "string",
+          "avro.java.string": "String"
+        }
+      ]
+    },
+    {
+      "name": "headers",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "string",
+          "avro.java.string": "String"
+        },
+        "avro.java.string": "String"
+      }
+    },
+    {
+      "name": "attachments",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": {
+            "type": "map",
+            "values": {
+              "type": "string",
+              "avro.java.string": "String"
+            },
+            "avro.java.string": "String"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -83,10 +83,6 @@
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-email-extraction-model</artifactId>
-        </dependency>
 
         <!-- Declared directly because the processors use them, even though
              nifi-avro-record-utils happens to pull both in as well. -->
@@ -160,4 +156,50 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- The record classes in this module induce their schemas through Avro's reflect
+                 API, so the .avsc files are derived from the compiled classes rather than the
+                 other way around. They are written straight into the output directory, which
+                 publishes them inside this jar under avro/ and lets the execution below
+                 package the same directory as a standalone artifact. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>export-avro-schemas</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>org.apache.nifi.processor.email.extraction.SchemaExporter</mainClass>
+                            <arguments>
+                                <argument>${project.build.outputDirectory}/avro</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>avro-schemas</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>avro-schemas</classifier>
+                            <classesDirectory>${project.build.outputDirectory}/avro</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
